@@ -43,4 +43,13 @@ public static class StringExtensions
             return input;
         }
     }
+
+    public static string Join<TSource, TResult>(this IEnumerable<TSource> source, string separator, Func<TSource, TResult> selector)
+    {
+        return source.Select(selector).Join(separator);
+    }
+    public static string Join<T>(this IEnumerable<T> source, string separator)
+    {
+        return string.Join(separator, source);
+    }
 }

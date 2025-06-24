@@ -1,4 +1,4 @@
-﻿namespace CommonFramework;
+﻿namespace CommonFramework.Maybe;
 
 public record Nothing<T> : Maybe<T>
 {

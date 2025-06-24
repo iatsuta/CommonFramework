@@ -1,4 +1,4 @@
-﻿namespace CommonFramework;
+﻿namespace CommonFramework.Maybe;
 
 public abstract record Maybe<T>
 {
@@ -9,6 +9,17 @@ public abstract record Maybe<T>
 
 public static class Maybe
 {
+    public static Maybe<Ignore> Return()
+    {
+        return Return(Ignore.Value);
+    }
+
+    public static Maybe<T> ToMaybe<T>(this T? value)
+        where T : struct
+    {
+        return OfCondition(value != null, () => value!.Value);
+    }
+
     public static Maybe<T> Return<T>(T value)
     {
         return new Just<T>(value);

@@ -1,4 +1,4 @@
-﻿namespace CommonFramework;
+﻿namespace CommonFramework.DictionaryCache;
 
 public interface IDictionaryCache<in TKey, out TValue>
 {

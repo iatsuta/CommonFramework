@@ -1,4 +1,4 @@
-﻿namespace CommonFramework;
+﻿namespace CommonFramework.Maybe;
 
 public record Just<T>(T Value) : Maybe<T>
 {
