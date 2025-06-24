@@ -1,4 +1,4 @@
-﻿namespace CommonFramework;
+﻿namespace CommonFramework.DictionaryCache;
 
 public class DictionaryCache<TKey, TValue> : IDictionaryCache<TKey, TValue>
     where TKey : notnull
