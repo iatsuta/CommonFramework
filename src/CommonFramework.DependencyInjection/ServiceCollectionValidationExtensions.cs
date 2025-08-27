@@ -1,84 +1,73 @@
-﻿using System.Reflection;
-
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.DependencyInjection;
 
+/// <summary>
+/// Provides extension methods for registering and executing <see cref="IServiceCollectionValidator"/> instances
+/// on an <see cref="IServiceCollection"/>.
+/// </summary>
 public static class ServiceCollectionValidationExtensions
 {
-    public static IServiceCollection ValidateDuplicateDeclaration(this IServiceCollection serviceCollection, params Type[] exceptServices)
+    /// <summary>
+    /// Registers a validator of type <typeparamref name="TValidator"/> with the service collection.
+    /// </summary>
+    /// <typeparam name="TValidator">The type of the validator to register. Must implement <see cref="IServiceCollectionValidator"/> and have a parameterless constructor.</typeparam>
+    /// <param name="services">The service collection to add the validator to.</param>
+    /// <returns>The original <see cref="IServiceCollection"/> for chaining.</returns>
+    public static IServiceCollection AddValidator<TValidator>(this IServiceCollection services)
+        where TValidator : IServiceCollectionValidator, new()
     {
-        var wrongMultiUsage = serviceCollection.GetWrongMultiUsage();
+        return services.AddValidator(new TValidator());
+    }
 
-        var filteredWrongMultiUsage = wrongMultiUsage.Where(pair => !exceptServices.Contains(pair.ServiceType)).ToList();
+    /// <summary>
+    /// Registers an instance of <see cref="IServiceCollectionValidator"/> with the service collection.
+    /// </summary>
+    /// <param name="services">The service collection to add the validator to.</param>
+    /// <param name="validator">The validator instance to register.</param>
+    /// <returns>The original <see cref="IServiceCollection"/> for chaining.</returns>
+    public static IServiceCollection AddValidator(this IServiceCollection services, IServiceCollectionValidator validator)
+    {
+        return services.AddSingleton(validator);
+    }
 
-        if (filteredWrongMultiUsage.Any())
+    /// <summary>
+    /// Performs manual validation of the <see cref="IServiceCollection"/> using all registered validators.
+    /// </summary>
+    /// <param name="services">The service collection to validate.</param>
+    /// <param name="options">Optional parameter providing additional options for validation. Can be <c>null</c>.</param>
+    /// <returns>The original <see cref="IServiceCollection"/> for chaining.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if any of the registered validators report errors. The exception message contains all aggregated validation errors.
+    /// </exception>
+    /// <remarks>
+    /// This method is a temporary workaround. The default DI container does not natively support
+    /// collecting validation errors at build time. Ideally, validators would be invoked automatically
+    /// during <c>BuildServiceProvider</c>, and all errors would be aggregated into a single exception
+    /// thrown by the DI engine.
+    /// </remarks>
+    public static IServiceCollection Validate(this IServiceCollection services, object? options = null)
+    {
+        var validationResult = services
+            .GetValidators()
+            .Select(validator => validator.Validate(services, options))
+            .Aggregate(ValidationResult.Success, (v1, v2) => v1 + v2);
+
+        if (!validationResult.IsSuccess)
         {
-            var message = filteredWrongMultiUsage.Join(
-                Environment.NewLine,
-                pair =>
-                {
-                    var keyedParts = pair.IsKeyedService ? $" (ServiceKey: {pair.ServiceKey})" : null;
-
-                    return
-                        $"The service {pair.ServiceType}{keyedParts} has been registered many times. There are services that use it in the constructor in a single instance: "
-                        + pair.UsedFor.Join(", ", usedService => usedService.ImplementationType);
-                });
+            var message = string.Join(Environment.NewLine, validationResult.Errors);
 
             throw new InvalidOperationException(message);
         }
 
-        return serviceCollection;
+        return services;
     }
 
-    private static List<(Type ServiceType, bool IsKeyedService, object ServiceKey, List<ServiceDescriptor> UsedFor)> GetWrongMultiUsage(this IServiceCollection serviceCollection)
+    private static IEnumerable<IServiceCollectionValidator> GetValidators(this IServiceCollection services)
     {
-        var usedParametersRequest =
-
-                from service in serviceCollection
-
-                let actualImplementationType = service.IsKeyedService ? service.KeyedImplementationType : service.ImplementationType
-
-                let actualImplementationFactory = service.IsKeyedService ? (object)service.KeyedImplementationFactory : service.ImplementationFactory
-
-                let serviceKey = service.IsKeyedService ? service.ServiceKey : null
-
-                where actualImplementationType != null && actualImplementationFactory == null
-
-                let ctors = actualImplementationType!.GetConstructors()
-
-                let actualCtor = ctors.Length == 1
-                                         ? ctors[0]
-                                         : ctors
-                                           .Where(ctor => ctor.GetCustomAttributes<ActivatorUtilitiesConstructorAttribute>().Any())
-                                           .Match(() => null, ctor => ctor, _ => null)
-
-                where actualCtor != null
-
-                from parameterType in actualCtor.GetParameters().Select(p => p.ParameterType).Distinct()
-
-                group service by (parameterType, service.IsKeyedService, serviceKey);
-
-        var usedParametersDict = usedParametersRequest.ToDictionary(g => g.Key, g => g.ToList());
-
-
-
-        var wrongMultiUsageRequest =
-
-                from service in serviceCollection
-
-                let serviceKey = service.IsKeyedService ? service.ServiceKey : null
-
-                group service by (service.ServiceType, service.IsKeyedService, serviceKey) into serviceTypeGroup
-
-                where serviceTypeGroup.Count() > 1
-
-                let servicesWithSimpleUsage = usedParametersDict.GetValueOrDefault(serviceTypeGroup.Key)
-
-                where servicesWithSimpleUsage != null
-
-                select (serviceTypeGroup.Key.ServiceType, serviceTypeGroup.Key.IsKeyedService, serviceTypeGroup.Key.serviceKey, servicesWithSimpleUsage);
-
-        return wrongMultiUsageRequest.ToList();
+        return
+            from sd in services
+            where !sd.IsKeyedService && sd.ServiceType == typeof(IServiceCollectionValidator) && sd.ImplementationInstance != null
+            select (IServiceCollectionValidator)sd.ImplementationInstance;
     }
 }
