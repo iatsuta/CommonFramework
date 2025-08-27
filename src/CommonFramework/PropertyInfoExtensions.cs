@@ -17,6 +17,13 @@ public static class PropertyInfoExtensions
         return PropertyLambdaCache<TSource, TProperty>.SetLambdaCache[property];
     }
 
+    public static LambdaExpression ToGetLambdaExpression(this PropertyInfo property, Type sourceType = null)
+    {
+        if (property == null) throw new ArgumentNullException(nameof(property));
+
+        return PropertyLambdaCache.GetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
+    }
+
     public static LambdaExpression ToSetLambdaExpression(this PropertyInfo property, Type? sourceType = null)
     {
         return PropertyLambdaCache.SetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
