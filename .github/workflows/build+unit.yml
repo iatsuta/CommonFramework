@@ -31,3 +31,7 @@ jobs:
         working-directory: ./src
         run: |
           dotnet build ./CommonFramework.slnx --no-restore
+
+      - name: Unit tests
+        run: |
+          dotnet test src/CommonFramework.DependencyInjection.Tests --no-build --verbosity normal
