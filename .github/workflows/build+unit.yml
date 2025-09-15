@@ -34,4 +34,8 @@ jobs:
 
       - name: Unit tests
         run: |
+          dotnet test src/CommonFramework.Tests --no-build --verbosity normal
+
+      - name: Di unit tests
+        run: |
           dotnet test src/CommonFramework.DependencyInjection.Tests --no-build --verbosity normal

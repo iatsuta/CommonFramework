@@ -41,4 +41,24 @@ public static class Maybe
         return condition ? getTrueValue()
             : getFalseValue();
     }
+
+    public static Func<TArg, Maybe<TResult>> OfTryMethod<TArg, TResult>(TryMethod<TArg, TResult> tryAction)
+    {
+        return arg =>
+        {
+            return OfCondition(tryAction(arg, out var result), () => result);
+        };
+    }
+
+    public static Func<TArg1, TArg2, Maybe<TResult>> OfTryMethod<TArg1, TArg2, TResult>(TryMethod<TArg1, TArg2, TResult> tryAction)
+    {
+        return (arg1, arg2) =>
+        {
+            return OfCondition(tryAction(arg1, arg2, out var result), () => result);
+        };
+    }
+
+    public delegate bool TryMethod<in TArg, TResult>(TArg arg, out TResult result);
+
+    public delegate bool TryMethod<in TArg1, in TArg2, TResult>(TArg1 arg1, TArg2 arg2, out TResult result);
 }    

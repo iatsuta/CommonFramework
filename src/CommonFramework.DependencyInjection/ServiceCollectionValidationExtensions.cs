@@ -67,7 +67,10 @@ public static class ServiceCollectionValidationExtensions
     {
         return
             from sd in services
-            where !sd.IsKeyedService && sd.ServiceType == typeof(IServiceCollectionValidator) && sd.ImplementationInstance != null
+            where sd.Lifetime == ServiceLifetime.Singleton
+                  && !sd.IsKeyedService
+                  && sd.ServiceType == typeof(IServiceCollectionValidator)
+                  && sd.ImplementationInstance != null
             select (IServiceCollectionValidator)sd.ImplementationInstance;
     }
 }
