@@ -30,7 +30,7 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
                    + string.Join(", ", pair.UsedFor.Select(usedService => usedService.ImplementationType));
         });
 
-        return new ValidationResult(errors.ToList());
+        return new ValidationResult(errors);
     }
 
     private static List<(Type ServiceType, bool IsKeyedService, object ServiceKey, List<ServiceDescriptor> UsedFor)> GetWrongMultiUsage(IServiceCollection serviceCollection)
