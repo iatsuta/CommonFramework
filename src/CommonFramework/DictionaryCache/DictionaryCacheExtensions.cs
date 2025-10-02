@@ -7,6 +7,13 @@ public static class DictionaryCacheExtensions
         return cache[Tuple.Create(tk1, tk2)];
     }
 
+    public static TValue GetValue<TK1, TK2, TK3, TValue>(this IDictionaryCache<Tuple<TK1, TK2, TK3>, TValue> cache, TK1 tk1, TK2 tk2, TK3 tk3)
+    {
+        if (cache == null) throw new ArgumentNullException(nameof(cache));
+
+        return cache[Tuple.Create(tk1, tk2, tk3)];
+    }
+
     public static IDictionaryCache<TKey, TValue> WithLock<TKey, TValue>(this IDictionaryCache<TKey, TValue> dictionaryCache, object? locker = null)
     {
         return new ConcurrentDictionaryCache<TKey, TValue>(dictionaryCache, locker ?? new object());

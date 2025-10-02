@@ -5,13 +5,13 @@ using CommonFramework.Maybe;
 
 namespace CommonFramework.ExpressionEvaluate;
 
-internal static class InjectMaybeExpressionExtensions
+public static class InjectMaybeExpressionExtensions
 {
     private static readonly MethodInfo SelectMethod = new Func<Maybe<object>, Func<object, object>, Maybe<object>>(LinqMaybeExtensions.Select).Method.GetGenericMethodDefinition();
 
     private static readonly MethodInfo SelectManyMethod = new Func<Maybe<object>, Func<object, Maybe<object>>, Maybe<object>>(LinqMaybeExtensions.SelectMany).Method.GetGenericMethodDefinition();
 
-    public static Expression TryGetValueOrDefault(this Expression expression)
+    internal static Expression TryGetValueOrDefault(this Expression expression)
     {
         var elementType = expression.Type.GetMaybeElementType();
 
@@ -27,7 +27,7 @@ internal static class InjectMaybeExpressionExtensions
         }
     }
 
-    public static Expression Return(this Expression expression)
+    public static Expression ToMaybeReturn(this Expression expression)
     {
         if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -50,14 +50,14 @@ internal static class InjectMaybeExpressionExtensions
     }
 
 
-    public static Expression OverrideSelect(this IEnumerable<Expression> expressions, Func<Expression[], Expression> getResult)
+    internal static Expression OverrideSelect(this IEnumerable<Expression> expressions, Func<Expression[], Expression> getResult)
     {
         using var enumerator = expressions.GetEnumerator();
 
         return enumerator.OverrideSelect([], getResult);
     }
 
-    private static Expression OverrideSelect(this IEnumerator<Expression> preExpressions, IEnumerable<Expression> postExpressions, Func<Expression[], Expression> getResult)
+    internal static Expression OverrideSelect(this IEnumerator<Expression> preExpressions, IEnumerable<Expression> postExpressions, Func<Expression[], Expression> getResult)
     {
         if (preExpressions.MoveNext())
         {
@@ -69,7 +69,7 @@ internal static class InjectMaybeExpressionExtensions
         }
     }
 
-    public static Expression OverrideSelect(this Expression expression, Func<Expression, Expression> getResult)
+    internal static Expression OverrideSelect(this Expression expression, Func<Expression, Expression> getResult)
     {
         return expression.OptimizeSelectSingle(getResult).Or(() => expression.OverrideSelectInternal(getResult))
             .GetValueOrDefault(() => getResult(expression));
@@ -135,7 +135,7 @@ internal static class InjectMaybeExpressionExtensions
     //}
 
 
-    public static MemberBinding UpdateMemberBindingBase(this MemberBinding memberBinding, IEnumerator<Expression> source)
+    internal static MemberBinding UpdateMemberBindingBase(this MemberBinding memberBinding, IEnumerator<Expression> source)
     {
         return memberBinding switch
         {
@@ -146,7 +146,7 @@ internal static class InjectMaybeExpressionExtensions
         };
     }
 
-    public static IEnumerable<Expression> GetMemberBindingExpressions(this MemberBinding memberBinding)
+    internal static IEnumerable<Expression> GetMemberBindingExpressions(this MemberBinding memberBinding)
     {
         return memberBinding switch
         {
@@ -159,6 +159,6 @@ internal static class InjectMaybeExpressionExtensions
 
     public static Expression SafeWrapToMaybe(this Expression expression)
     {
-        return expression.Type.IsMaybe() ? expression : expression.Return();
+        return expression.Type.IsMaybe() ? expression : expression.ToMaybeReturn();
     }
 }
