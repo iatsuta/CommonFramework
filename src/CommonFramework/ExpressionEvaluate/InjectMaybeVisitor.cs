@@ -64,7 +64,7 @@ public class InjectMaybeVisitor : ExpressionVisitor
 
                 if (nullableType != null && node.Member.Name == "Value")
                 {
-                    return baseVisitedExpression.OverrideSelect(v => v.Return());
+                    return baseVisitedExpression.OverrideSelect(v => v.ToMaybeReturn());
                 }
                 else
                 {
@@ -77,7 +77,7 @@ public class InjectMaybeVisitor : ExpressionVisitor
             }
             else
             {
-                var visitedExpression = baseVisitedExpression.OverrideSelect(ex => ex.Return());
+                var visitedExpression = baseVisitedExpression.OverrideSelect(ex => ex.ToMaybeReturn());
 
                 var method = SelectMethod.MakeGenericMethod(param.Type, node.Type);
 
@@ -94,7 +94,7 @@ public class InjectMaybeVisitor : ExpressionVisitor
 
                 if (nullableType != null && node.Member.Name == "Value")
                 {
-                    return baseVisitedExpression.OverrideSelect(v => v.Return());
+                    return baseVisitedExpression.OverrideSelect(v => v.ToMaybeReturn());
                 }
                 else
                 {
@@ -103,7 +103,7 @@ public class InjectMaybeVisitor : ExpressionVisitor
             }
             else
             {
-                var visitedExpression = baseVisitedExpression.Return();
+                var visitedExpression = baseVisitedExpression.ToMaybeReturn();
 
                 var method = new Func<Maybe<object>, Func<object, object>, Maybe<object>>(LinqMaybeExtensions.Select).CreateGenericMethod(param.Type, node.Type);
 

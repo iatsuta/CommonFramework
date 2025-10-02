@@ -1,13 +1,18 @@
-﻿using System.Linq.Expressions;
-using System.Reflection;
-
-using CommonFramework.Maybe;
+﻿using CommonFramework.Maybe;
 using CommonFramework.Visitor;
+
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace CommonFramework;
 
 public static class ExpressionExtensions
 {
+    public static Expression<Action<TSource, TProperty>> ToSetLambdaExpression<TSource, TProperty>(this Expression<Func<TSource, TProperty>> expr)
+    {
+        return expr.GetProperty().ToSetLambdaExpression<TSource, TProperty>();
+    }
+
     public static IEnumerable<Expression> GetChildren(this MethodCallExpression expression)
     {
         if (expression == null) throw new ArgumentNullException(nameof(expression));

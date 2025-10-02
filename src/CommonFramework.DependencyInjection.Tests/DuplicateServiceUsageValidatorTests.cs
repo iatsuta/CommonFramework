@@ -14,7 +14,7 @@ public class DuplicateServiceUsageValidatorTests
 
         services.AddSingleton<Consumer>();
 
-        services.AddValidator(new DuplicateServiceUsageValidator());
+        services.AddValidator<DuplicateServiceUsageValidator>();
 
         Action act = () => services.Validate();
 
@@ -32,7 +32,7 @@ public class DuplicateServiceUsageValidatorTests
 
         services.AddSingleton<ConsumerWithCollection>();
 
-        services.AddValidator(new DuplicateServiceUsageValidator());
+        services.AddValidator<DuplicateServiceUsageValidator>();
 
         Action act = () => services.Validate();
 
@@ -50,6 +50,7 @@ public class DuplicateServiceUsageValidatorTests
         services.AddSingleton<Consumer>();
 
         services.AddValidator(new DuplicateServiceUsageValidator([typeof(IService)]));
+
         Action act = () => services.Validate();
 
         act.Should().NotThrow();

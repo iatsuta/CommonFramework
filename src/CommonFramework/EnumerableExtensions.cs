@@ -1,4 +1,5 @@
 ﻿using CommonFramework.Maybe;
+using System.Collections.ObjectModel;
 
 namespace CommonFramework;
 
@@ -95,6 +96,17 @@ public static class EnumerableExtensions
         }
     }
 
+    public static void Foreach<T>(this IEnumerable<T> source, Action<T, int> action)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (action == null) throw new ArgumentNullException(nameof(action));
+
+        foreach (var pair in source.Select((value, index) => new { Value = value, Index = index }))
+        {
+            action(pair.Value, pair.Index);
+        }
+    }
+
     public static IReadOnlyList<T> ToReadOnlyListI<T>(this IEnumerable<T> source)
     {
         return source.ToList();
@@ -157,5 +169,146 @@ public static class EnumerableExtensions
         }
 
         return current;
+    }
+
+    public static TSource? SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        if (manyExceptionHandler == null)
+        {
+            throw new ArgumentNullException(nameof(manyExceptionHandler));
+        }
+
+        return source.Where(predicate).SingleOrDefault(manyExceptionHandler);
+    }
+
+    public static TSource? SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (manyExceptionHandler == null)
+        {
+            throw new ArgumentNullException(nameof(manyExceptionHandler));
+        }
+
+        var items = source.ToList();
+
+        if (items.Count > 1)
+        {
+            throw manyExceptionHandler(items.ToArray());
+        }
+
+        return items.SingleOrDefault();
+    }
+
+    public static IReadOnlyCollection<T> ToReadOnlyCollectionI<T>(this IEnumerable<T> source)
+    {
+        return source.ToList();
+    }
+
+    public static ReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
+        where TKey : notnull
+    {
+        return new ReadOnlyDictionary<TKey, TValue>(source.ToDictionary(keySelector, elementSelector));
+    }
+
+    public static ReadOnlyDictionary<TKey, TSource> ToReadOnlyDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        where TKey : notnull
+    {
+        return source.ToReadOnlyDictionary(keySelector, v => v);
+    }
+
+    public static IReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionaryI<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector)
+        where TKey : notnull
+    {
+        return source.ToReadOnlyDictionary(keySelector);
+    }
+
+    public static IReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionaryI<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> source)
+        where TKey : notnull
+    {
+        return source.ToDictionary(pair => pair.Key, pair => pair.Value);
+    }
+
+    public static ReadOnlyCollection<TResult> ToReadOnlyCollection<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (selector == null) throw new ArgumentNullException(nameof(selector));
+
+        return source.Select(selector).ToReadOnlyCollection();
+    }
+
+    public static ReadOnlyCollection<TSource> ToReadOnlyCollection<TSource>(this IEnumerable<TSource> source)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+
+        return new ReadOnlyCollection<TSource>(source.ToArray());
+    }
+
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<Exception> emptyExceptionHandler, Func<Exception> manyExceptionHandler)
+    {
+        if (source == null) throw new ArgumentNullException(nameof(source));
+        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+        if (emptyExceptionHandler == null) throw new ArgumentNullException(nameof(emptyExceptionHandler));
+        if (manyExceptionHandler == null) throw new ArgumentNullException(nameof(manyExceptionHandler));
+
+        return source.Where(predicate).Single(emptyExceptionHandler, manyExceptionHandler);
+    }
+
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<Exception> emptyExceptionHandler)
+    {
+        return source.Single(predicate, emptyExceptionHandler, () => new InvalidOperationException("More Than One Element"));
+    }
+
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<Exception> emptyExceptionHandler)
+    {
+        return source.Single(emptyExceptionHandler, () => new InvalidOperationException("More Than One Element"));
+    }
+
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<Exception> emptyExceptionHandler, Func<Exception> manyExceptionHandler)
+    {
+        if (source == null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (emptyExceptionHandler == null)
+        {
+            throw new ArgumentNullException(nameof(emptyExceptionHandler));
+        }
+
+        if (manyExceptionHandler == null)
+        {
+            throw new ArgumentNullException(nameof(manyExceptionHandler));
+        }
+
+        using (var enumerator = source.GetEnumerator())
+        {
+            if (!enumerator.MoveNext())
+            {
+                throw emptyExceptionHandler();
+            }
+
+            var current = enumerator.Current;
+
+            if (enumerator.MoveNext())
+            {
+                throw manyExceptionHandler();
+            }
+
+            return current;
+        }
     }
 }
