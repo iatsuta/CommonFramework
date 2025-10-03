@@ -32,6 +32,7 @@ public class MaybeTests
     public class A
     {
         public A? Parent { get; set; }
+
         public required string Name { get; set; }
     }
 }
