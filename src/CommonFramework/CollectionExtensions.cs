@@ -6,4 +6,9 @@ public static class CollectionExtensions
     {
         args.Foreach(source.Add);
     }
+
+    public static void RemoveRange<T>(this ICollection<T> source, IEnumerable<T> items)
+    {
+        items.Foreach(item => source.Remove(item));
+    }
 }

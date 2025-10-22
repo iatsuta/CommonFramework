@@ -11,8 +11,18 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
-        <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+        <RepositoryUrl>https://github.com/iatsuta/CommonFramework</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    
     </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAllSources>true</EmbedAllSources>
+    <IncludeSymbols>false</IncludeSymbols>
+  </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <DebugType>None</DebugType>

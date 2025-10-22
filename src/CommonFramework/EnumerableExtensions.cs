@@ -10,7 +10,8 @@ public static class EnumerableExtensions
         return source.SelectMany(v => v);
     }
 
-    public static TResult Match<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult> emptyFunc, Func<TSource, TResult> singleFunc, Func<TSource[], TResult> manyFunc)
+    public static TResult Match<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult> emptyFunc, Func<TSource, TResult> singleFunc,
+        Func<TSource[], TResult> manyFunc)
     {
         var cache = source.ToArray();
 
@@ -98,9 +99,6 @@ public static class EnumerableExtensions
 
     public static void Foreach<T>(this IEnumerable<T> source, Action<T, int> action)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (action == null) throw new ArgumentNullException(nameof(action));
-
         foreach (var pair in source.Select((value, index) => new { Value = value, Index = index }))
         {
             action(pair.Value, pair.Index);
@@ -111,8 +109,9 @@ public static class EnumerableExtensions
     {
         return source.ToList();
     }
-    
-    public static IEnumerable<TResult> ZipStrong<TSource, TOther, TResult>(this IEnumerable<TSource> source, IEnumerable<TOther> other, Func<TSource, TOther, TResult> resultSelector)
+
+    public static IEnumerable<TResult> ZipStrong<TSource, TOther, TResult>(this IEnumerable<TSource> source, IEnumerable<TOther> other,
+        Func<TSource, TOther, TResult> resultSelector)
     {
         using var sourceEnumerator = source.GetEnumerator();
         using var otherEnumerator = other.GetEnumerator();
@@ -144,7 +143,8 @@ public static class EnumerableExtensions
         return source.Where(item => !hashSet.Add(item));
     }
 
-    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<Exception> emptyExceptionHandler, Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<Exception> emptyExceptionHandler,
+        Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
     {
         return source.Match(
             () => throw emptyExceptionHandler(),
@@ -171,38 +171,14 @@ public static class EnumerableExtensions
         return current;
     }
 
-    public static TSource? SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
+    public static TSource? SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate,
+        Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (predicate == null)
-        {
-            throw new ArgumentNullException(nameof(predicate));
-        }
-
-        if (manyExceptionHandler == null)
-        {
-            throw new ArgumentNullException(nameof(manyExceptionHandler));
-        }
-
         return source.Where(predicate).SingleOrDefault(manyExceptionHandler);
     }
 
     public static TSource? SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<IReadOnlyCollection<TSource>, Exception> manyExceptionHandler)
     {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (manyExceptionHandler == null)
-        {
-            throw new ArgumentNullException(nameof(manyExceptionHandler));
-        }
-
         var items = source.ToList();
 
         if (items.Count > 1)
@@ -218,7 +194,8 @@ public static class EnumerableExtensions
         return source.ToList();
     }
 
-    public static ReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
+    public static ReadOnlyDictionary<TKey, TValue> ToReadOnlyDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source,
+        Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
         where TKey : notnull
     {
         return new ReadOnlyDictionary<TKey, TValue>(source.ToDictionary(keySelector, elementSelector));
@@ -244,26 +221,17 @@ public static class EnumerableExtensions
 
     public static ReadOnlyCollection<TResult> ToReadOnlyCollection<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (selector == null) throw new ArgumentNullException(nameof(selector));
-
         return source.Select(selector).ToReadOnlyCollection();
     }
 
     public static ReadOnlyCollection<TSource> ToReadOnlyCollection<TSource>(this IEnumerable<TSource> source)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-
         return new ReadOnlyCollection<TSource>(source.ToArray());
     }
 
-    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<Exception> emptyExceptionHandler, Func<Exception> manyExceptionHandler)
+    public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<Exception> emptyExceptionHandler,
+        Func<Exception> manyExceptionHandler)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (predicate == null) throw new ArgumentNullException(nameof(predicate));
-        if (emptyExceptionHandler == null) throw new ArgumentNullException(nameof(emptyExceptionHandler));
-        if (manyExceptionHandler == null) throw new ArgumentNullException(nameof(manyExceptionHandler));
-
         return source.Where(predicate).Single(emptyExceptionHandler, manyExceptionHandler);
     }
 
@@ -279,36 +247,71 @@ public static class EnumerableExtensions
 
     public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<Exception> emptyExceptionHandler, Func<Exception> manyExceptionHandler)
     {
-        if (source == null)
+        using var enumerator = source.GetEnumerator();
+
+        if (!enumerator.MoveNext())
         {
-            throw new ArgumentNullException(nameof(source));
+            throw emptyExceptionHandler();
         }
 
-        if (emptyExceptionHandler == null)
+        var current = enumerator.Current;
+
+        if (enumerator.MoveNext())
         {
-            throw new ArgumentNullException(nameof(emptyExceptionHandler));
+            throw manyExceptionHandler();
         }
 
-        if (manyExceptionHandler == null)
-        {
-            throw new ArgumentNullException(nameof(manyExceptionHandler));
-        }
+        return current;
+    }
 
-        using (var enumerator = source.GetEnumerator())
+    public static MergeResult<TSource, TTarget> GetMergeResult<TSource, TTarget, TKey>(
+        this IEnumerable<TSource> source,
+        IEnumerable<TTarget> target,
+        Func<TSource, TKey> sourceKeySelector,
+        Func<TTarget, TKey> targetKeySelector,
+        Func<TKey, TKey, bool> equalsFunc)
+        where TKey : notnull
+    {
+        return source.GetMergeResult(target, sourceKeySelector, targetKeySelector, new EqualityComparerImpl<TKey>(equalsFunc, _ => 0));
+    }
+
+    public static MergeResult<T, T> GetMergeResult<T>(this IEnumerable<T> source, IEnumerable<T> target, IEqualityComparer<T>? comparer = null)
+        where T : notnull
+    {
+        return source.GetMergeResult(target, v => v, v => v, comparer);
+    }
+
+    public static MergeResult<TSource, TTarget> GetMergeResult<TSource, TTarget, TKey>(
+        this IEnumerable<TSource> source,
+        IEnumerable<TTarget> target,
+        Func<TSource, TKey> sourceKeySelector,
+        Func<TTarget, TKey> targetKeySelector,
+        IEqualityComparer<TKey>? comparer = null)
+        where TKey : notnull
+    {
+        var targetMap = target.ToDictionary(targetKeySelector, z => z, comparer ?? EqualityComparer<TKey>.Default);
+
+        var removingItems = new List<TSource>();
+
+        var combineItems = new List<ValueTuple<TSource, TTarget>>();
+
+        foreach (var sourceItem in source)
         {
-            if (!enumerator.MoveNext())
+            var sourceKey = sourceKeySelector(sourceItem);
+
+            if (targetMap.TryGetValue(sourceKey, out var targetItem))
             {
-                throw emptyExceptionHandler();
+                combineItems.Add(ValueTuple.Create(sourceItem, targetItem));
+                targetMap.Remove(sourceKey);
             }
-
-            var current = enumerator.Current;
-
-            if (enumerator.MoveNext())
+            else
             {
-                throw manyExceptionHandler();
+                removingItems.Add(sourceItem);
             }
-
-            return current;
         }
+
+        var addingItems = targetMap.Values.ToList();
+
+        return new MergeResult<TSource, TTarget>(addingItems, combineItems, removingItems);
     }
 }

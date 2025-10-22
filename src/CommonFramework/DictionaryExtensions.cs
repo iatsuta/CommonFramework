@@ -7,18 +7,11 @@ public static class DictionaryExtensions
     public static Dictionary<TNewKey, TValue> ChangeKey<TOldKey, TNewKey, TValue>(this IReadOnlyDictionary<TOldKey, TValue> source, Func<TOldKey, TNewKey> selector)
         where TNewKey : notnull
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (selector == null) throw new ArgumentNullException(nameof(selector));
-
         return source.ToDictionary(pair => selector(pair.Key), pair => pair.Value);
     }
 
     public static TValue GetValueOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> source, TKey key, object syncLocker, Func<TValue> getNewPairValue)
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (syncLocker == null) throw new ArgumentNullException(nameof(syncLocker));
-        if (getNewPairValue == null) throw new ArgumentNullException(nameof(getNewPairValue));
-
         if (source.TryGetValue(key, out var value))
         {
             return value;
@@ -42,9 +35,6 @@ public static class DictionaryExtensions
     public static Dictionary<TKey, TValue> Concat<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source, IReadOnlyDictionary<TKey, TValue> other)
         where TKey : notnull
     {
-        if (source == null) throw new ArgumentNullException(nameof(source));
-        if (other == null) throw new ArgumentNullException(nameof(other));
-
         return ((IEnumerable<KeyValuePair<TKey, TValue>>)source).Concat(other).ToDictionary();
     }
 
