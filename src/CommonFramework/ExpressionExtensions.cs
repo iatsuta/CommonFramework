@@ -15,8 +15,6 @@ public static class ExpressionExtensions
 
     public static IEnumerable<Expression> GetChildren(this MethodCallExpression expression)
     {
-        if (expression == null) throw new ArgumentNullException(nameof(expression));
-
         if (expression.Object != null)
         {
             yield return expression.Object;

@@ -135,8 +135,6 @@ public static class TypeExtensions
 
     public static MethodInfo? GetEqualityMethod(this Type type, bool withBaseTypes = false)
     {
-        if (type == null) throw new ArgumentNullException(nameof(type));
-
         if (withBaseTypes)
         {
             return type.GetAllElements(t => t.BaseType).Select(t => t.GetEqualityMethod()).FirstOrDefault(t => t != null);

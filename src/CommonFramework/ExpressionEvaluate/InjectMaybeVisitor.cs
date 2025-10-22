@@ -36,8 +36,6 @@ public class InjectMaybeVisitor : ExpressionVisitor
 
     public LambdaExpression VisitAndGetValueOrDefaultBase(LambdaExpression expr)
     {
-        if (expr == null) throw new ArgumentNullException(nameof(expr));
-
         var newBody = this.Visit(expr.Body);
 
         return Expression.Lambda(newBody.TryGetValueOrDefault(), expr.Parameters);

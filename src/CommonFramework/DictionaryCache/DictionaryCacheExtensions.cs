@@ -9,8 +9,6 @@ public static class DictionaryCacheExtensions
 
     public static TValue GetValue<TK1, TK2, TK3, TValue>(this IDictionaryCache<Tuple<TK1, TK2, TK3>, TValue> cache, TK1 tk1, TK2 tk2, TK3 tk3)
     {
-        if (cache == null) throw new ArgumentNullException(nameof(cache));
-
         return cache[Tuple.Create(tk1, tk2, tk3)];
     }
 

@@ -29,8 +29,6 @@ public static class InjectMaybeExpressionExtensions
 
     public static Expression ToMaybeReturn(this Expression expression)
     {
-        if (expression == null) throw new ArgumentNullException(nameof(expression));
-
         var nullableType = expression.Type.GetNullableElementType();
 
         if (nullableType != null)
