@@ -1,20 +1,20 @@
 <Project>
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
 
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 
-        <OutputPath>bin</OutputPath>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
-        <RepositoryUrl>https://github.com/iatsuta/CommonFramework</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-    
-    </PropertyGroup>
+    <RepositoryUrl>https://github.com/iatsuta/CommonFramework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+  </PropertyGroup>
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
@@ -24,12 +24,11 @@
     <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <DebugType>None</DebugType>
-        <DebugSymbols>False</DebugSymbols>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>None</DebugType>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Include="..\__SolutionItems\CommonAssemblyInfo.cs" Link="Properties\CommonAssemblyInfo.cs"/>
-    </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\__SolutionItems\CommonAssemblyInfo.cs" Link="Properties\CommonAssemblyInfo.cs"/>
+  </ItemGroup>
 </Project>

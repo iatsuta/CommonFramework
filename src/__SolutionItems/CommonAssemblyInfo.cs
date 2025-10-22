@@ -3,7 +3,7 @@
 [assembly: AssemblyProduct("CommonFramework")]
 [assembly: AssemblyCompany("IvAt")]
 
-[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.3.0.1")]
 [assembly: AssemblyInformationalVersion("changes at build")]
 
 #if DEBUG
