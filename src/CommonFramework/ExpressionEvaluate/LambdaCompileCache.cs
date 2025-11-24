@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using System.Reflection;
 
 using CommonFramework.ExpressionComparers;
 
@@ -7,7 +8,7 @@ namespace CommonFramework.ExpressionEvaluate;
 
 public class LambdaCompileCache(LambdaCompileMode mode) : ILambdaCompileCache
 {
-	private readonly ConcurrentDictionary<Type, ConcurrentDictionary<LambdaExpression, Delegate>> rootCache = new();
+	private readonly ConcurrentDictionary<ValueTuple<Type, MethodInfo?>, ConcurrentDictionary<LambdaExpression, Delegate>> rootCache = new();
 
 	public TDelegate GetFunc<TDelegate>(Expression<TDelegate> lambdaExpression)
 	{
@@ -27,7 +28,8 @@ public class LambdaCompileCache(LambdaCompileMode mode) : ILambdaCompileCache
 	{
 		return
 			this.rootCache
-				.GetOrAdd(typeof(TDelegate), _ => new ConcurrentDictionary<LambdaExpression, Delegate>(LambdaComparer.Value))
+				.GetOrAdd(ValueTuple.Create(typeof(TDelegate), (expr.Body as MethodCallExpression)?.Method),
+					_ => new ConcurrentDictionary<LambdaExpression, Delegate>(LambdaComparer.Value))
 				.GetOrAdd(expr, _ =>
 					expr.Pipe(mode.HasFlag(LambdaCompileMode.IgnoreStringCase),
 							lambda => lambda.UpdateBodyBase(new OverrideStringEqualityExpressionVisitor(StringComparison.CurrentCultureIgnoreCase)))
