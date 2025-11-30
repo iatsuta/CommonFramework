@@ -2,15 +2,23 @@
 
 public static class FuncExtensions
 {
-    public static Func<TResult> WithCache<TResult>(this Func<TResult> func)
+    extension<TResult>(Func<TResult> func)
     {
-        var lazyValue = func.ToLazy();
+	    public Func<TResult> WithCache()
+	    {
+		    var lazyValue = func.ToLazy();
 
-        return () => lazyValue.Value;
+		    return () => lazyValue.Value;
+	    }
+
+	    public Lazy<TResult> ToLazy()
+	    {
+		    return new Lazy<TResult>(func);
+	    }
     }
 
-    public static Lazy<T> ToLazy<T>(this Func<T> getValueFunc)
+    public static Func<TArg, TNextResult> Composite<TArg, TResult, TNextResult>(this Func<TArg, TResult> func, Func<TResult, TNextResult> nextFunc)
     {
-        return new Lazy<T>(getValueFunc);
+	    return arg => nextFunc(func(arg));
     }
 }
