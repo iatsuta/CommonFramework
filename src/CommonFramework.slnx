@@ -1,13 +1,18 @@
 <Solution>
+  <Folder Name="/_Tests/">
+    <Project Path="CommonFramework.DependencyInjection.Tests/CommonFramework.DependencyInjection.Tests.csproj" />
+    <Project Path="CommonFramework.Tests/CommonFramework.Tests.csproj" />
+  </Folder>
 
   <Folder Name="/__SolutionItems/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="__SolutionItems/CommonAssemblyInfo.cs" />
   </Folder>
-  <Project Path="CommonFramework.DependencyInjection.Tests/CommonFramework.DependencyInjection.Tests.csproj" />
   <Project Path="CommonFramework.DependencyInjection/CommonFramework.DependencyInjection.csproj" />
-  <Project Path="CommonFramework.Tests/CommonFramework.Tests.csproj" />
+  <Project Path="CommonFramework.GenericRepository/CommonFramework.GenericRepository.csproj" />
+  <Project Path="CommonFramework.IdentitySource/CommonFramework.IdentitySource.csproj" />
+  <Project Path="CommonFramework.VisualIdentitySource/CommonFramework.VisualIdentitySource.csproj" />
 
   <Project Path="CommonFramework/CommonFramework.csproj" />
   
