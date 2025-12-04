@@ -21,7 +21,7 @@ public class InlineEvaluateTests
         // Assert
         result.Should().Be(expectedResult, ExpressionComparer.Value);
     }
-    
+
     [Fact]
     public void InlineEvaluate_EmployeeBusinessUnitIdPath_TransformsToExpectedEnumerableExpression()
     {

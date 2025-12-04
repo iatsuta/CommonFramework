@@ -8,12 +8,28 @@ namespace CommonFramework;
 
 public static class ExpressionExtensions
 {
-    public static Expression<Action<TSource, TProperty>> ToSetLambdaExpression<TSource, TProperty>(this Expression<Func<TSource, TProperty>> expr)
-    {
-        return expr.GetProperty().ToSetLambdaExpression<TSource, TProperty>();
-    }
+	extension<TSource, TProperty>(Expression<Func<TSource, TProperty>> path)
+	{
+		public PropertyAccessors<TSource, TProperty> ToPropertyAccessors() => new (path);
 
-    public static IEnumerable<Expression> GetChildren(this MethodCallExpression expression)
+		public Expression<Action<TSource, TProperty>> ToSetLambdaExpression()
+		{
+			return path.GetProperty().ToSetLambdaExpression<TSource, TProperty>();
+		}
+
+		public PropertyInfo GetProperty()
+		{
+			var request = from member in path.Body.GetMember()
+
+				from property in (member as PropertyInfo).ToMaybe()
+
+				select property;
+
+			return request.GetValue(() => new ArgumentException("not property expression", nameof(path)));
+		}
+	}
+
+	public static IEnumerable<Expression> GetChildren(this MethodCallExpression expression)
     {
         if (expression.Object != null)
         {
@@ -33,17 +49,6 @@ public static class ExpressionExtensions
         var whereMethod = new Func<IEnumerable<T>, Func<T, bool>, IEnumerable<T>>(Enumerable.Where).Method;
 
         return Expression.Lambda<Func<IEnumerable<T>, IEnumerable<T>>>(Expression.Call(null, whereMethod, param, filter), param);
-    }
-
-    public static PropertyInfo GetProperty<TSource, TResult>(this Expression<Func<TSource, TResult>> expr)
-    {
-        var request = from member in expr.Body.GetMember()
-
-            from property in (member as PropertyInfo).ToMaybe()
-
-            select property;
-
-        return request.GetValue(() => new ArgumentException("not property expression", nameof(expr)));
     }
 
     public static Maybe<MemberInfo> GetMember(this Expression expr)
@@ -155,10 +160,10 @@ public static class ExpressionExtensions
     public static Expression GetBodyWithOverrideParameters(this LambdaExpression lambda, params Expression[] newExpressions)
     {
         var pairs = lambda.Parameters.ZipStrong(newExpressions, (parameter, newExpression) => new { Parameter = parameter, NewExpression = newExpression });
-        
+
         return pairs.Aggregate(lambda.Body, (expr, pair) => expr.Override(pair.Parameter, pair.NewExpression));
     }
-    
+
     public static Expression Override(this Expression baseExpression, Expression oldExpr, Expression newExpr)
     {
         return new OverrideExpressionVisitor(oldExpr, newExpr).Visit(baseExpression)!;
@@ -183,13 +188,13 @@ public static class ExpressionExtensions
     {
         return expression.GetDeepMemberConstExpression().Select(expr => expr.Value);
     }
-    
+
     public static Maybe<ConstantExpression> GetMemberConstExpression(this Expression expression)
     {
         return (expression as ConstantExpression).ToMaybe()
 
             .Or(() =>
-                
+
                 from memberExpr in (expression as MemberExpression).ToMaybe()
 
                 from constExpr in (memberExpr.Expression as ConstantExpression).ToMaybe()
@@ -197,8 +202,8 @@ public static class ExpressionExtensions
                 from fieldInfo in (memberExpr.Member as FieldInfo).ToMaybe()
 
                 select Expression.Constant(fieldInfo.GetValue(constExpr.Value), fieldInfo.FieldType));
-    }    
-    
+    }
+
     /// <summary> Returns constant value from expression
     /// </summary>
     /// <typeparam name="TValue">cast value to specified Type if possible</typeparam>
