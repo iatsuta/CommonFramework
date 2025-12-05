@@ -46,4 +46,4 @@ jobs:
 
       - name: VisualIdentitySource unit tests
         run: |
-          dotnet test src/CommonFramework.VisualIdentitySource.Tests --no-build --verbosity norma
+          dotnet test src/CommonFramework.VisualIdentitySource.Tests --no-build --verbosity normal
