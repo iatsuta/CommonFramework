@@ -6,8 +6,14 @@ using CommonFramework.ExpressionComparers;
 
 namespace CommonFramework.ExpressionEvaluate;
 
-public class LambdaCompileCache(LambdaCompileMode mode) : ILambdaCompileCache
+public class LambdaCompileCache(LambdaCompileMode mode, IEqualityComparer<LambdaExpression> lambdaComparer) : ILambdaCompileCache
 {
+	public LambdaCompileCache(LambdaCompileMode mode)
+		: this(mode, ExpressionComparer.WithoutConst.LambdaComparer)
+	{
+
+	}
+
 	private readonly ConcurrentDictionary<ValueTuple<Type, MethodInfo?>, ConcurrentDictionary<LambdaExpression, Delegate>> rootCache = new();
 
 	public TDelegate GetFunc<TDelegate>(Expression<TDelegate> lambdaExpression)
@@ -29,7 +35,7 @@ public class LambdaCompileCache(LambdaCompileMode mode) : ILambdaCompileCache
 		return
 			this.rootCache
 				.GetOrAdd(ValueTuple.Create(typeof(TDelegate), (expr.Body as MethodCallExpression)?.Method),
-					_ => new ConcurrentDictionary<LambdaExpression, Delegate>(LambdaComparer.Value))
+					_ => new ConcurrentDictionary<LambdaExpression, Delegate>(lambdaComparer))
 				.GetOrAdd(expr, _ =>
 					expr.Pipe(mode.HasFlag(LambdaCompileMode.IgnoreStringCase),
 							lambda => lambda.UpdateBodyBase(new OverrideStringEqualityExpressionVisitor(StringComparison.CurrentCultureIgnoreCase)))
@@ -38,7 +44,8 @@ public class LambdaCompileCache(LambdaCompileMode mode) : ILambdaCompileCache
 						.Compile());
 	}
 
-	private static LambdaExpression ConstantToParameters(LambdaExpression lambdaExpression, out IReadOnlyCollection<ValueTuple<ParameterExpression, ConstantExpression>> args)
+	private static LambdaExpression ConstantToParameters(LambdaExpression lambdaExpression,
+		out IReadOnlyCollection<ValueTuple<ParameterExpression, ConstantExpression>> args)
 	{
 		var listArgs = new List<ValueTuple<ParameterExpression, ConstantExpression>>();
 

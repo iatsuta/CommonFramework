@@ -3,19 +3,18 @@ using System.Linq.Expressions;
 
 namespace CommonFramework.ExpressionComparers;
 
-internal class ListInitComparer : ExpressionComparer<ListInitExpression>
+public class ListInitComparer(ExpressionComparer rootComparer) : ExpressionComparer<ListInitExpression>
 {
-    protected override bool PureEquals(ListInitExpression x, ListInitExpression y)
-    {
-        return ExpressionComparer.Value.Equals(x.NewExpression, y.NewExpression)
-               && CompareElementInitList(x.Initializers, y.Initializers);
-    }
+	private readonly ElementInitComparer elementInitComparer = new(rootComparer);
 
-    private static bool CompareElementInitList(ReadOnlyCollection<ElementInit> x, ReadOnlyCollection<ElementInit> y)
-    {
-        return x == y || x.SequenceEqual(y, ElementInitComparer.Value);
-    }
+	protected override bool PureEquals(ListInitExpression x, ListInitExpression y)
+	{
+		return rootComparer.Equals(x.NewExpression, y.NewExpression)
+		       && this.CompareElementInitList(x.Initializers, y.Initializers);
+	}
 
-
-    public static readonly ListInitComparer Value = new ListInitComparer();
+	private bool CompareElementInitList(ReadOnlyCollection<ElementInit> x, ReadOnlyCollection<ElementInit> y)
+	{
+		return x == y || x.SequenceEqual(y, this.elementInitComparer);
+	}
 }

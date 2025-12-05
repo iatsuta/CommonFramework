@@ -2,14 +2,11 @@
 
 namespace CommonFramework.ExpressionComparers;
 
-internal class UnaryComparer : ExpressionComparer<UnaryExpression>
+public class UnaryComparer(ExpressionComparer rootComparer) : ExpressionComparer<UnaryExpression>
 {
-    protected override bool PureEquals(UnaryExpression x, UnaryExpression y)
+	protected override bool PureEquals(UnaryExpression x, UnaryExpression y)
     {
         return x.Method == y.Method
-               && ExpressionComparer.Value.Equals(x.Operand, y.Operand);
+               && rootComparer.Equals(x.Operand, y.Operand);
     }
-
-
-    public static readonly UnaryComparer Value = new UnaryComparer();
 }

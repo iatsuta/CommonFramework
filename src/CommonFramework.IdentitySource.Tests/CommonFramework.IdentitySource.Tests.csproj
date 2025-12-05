@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CommonFramework.DependencyInjection\CommonFramework.DependencyInjection.csproj" />
+    <ProjectReference Include="..\CommonFramework.IdentitySource\CommonFramework.IdentitySource.csproj" />
   </ItemGroup>
 
   <ItemGroup>
