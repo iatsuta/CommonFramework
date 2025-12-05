@@ -22,7 +22,9 @@ public class IdentitySourceSettings : IIdentitySourceSettings
 	public IIdentitySourceSettings SetId<TDomainObject, TIdent>(Expression<Func<TDomainObject, TIdent>> idPath)
 		where TIdent : notnull
 	{
-		this.actions.Add(sc => sc.AddSingleton(new IdentityInfo<TDomainObject, TIdent>(idPath)));
+		var identityInfo = new IdentityInfo<TDomainObject, TIdent>(idPath);
+
+		this.actions.Add(sc => sc.AddSingleton(identityInfo).AddSingleton<IdentityInfo<TDomainObject>>().AddSingleton<IdentityInfo>(identityInfo));
 
 		return this;
 	}
