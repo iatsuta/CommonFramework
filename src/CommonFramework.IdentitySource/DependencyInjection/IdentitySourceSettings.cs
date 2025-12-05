@@ -38,6 +38,9 @@ public class IdentitySourceSettings : IIdentitySourceSettings
 		}
 		else
 		{
+			services.AddSingleton<IIdentityInfoSource, IdentityInfoSource>();
+			services.AddSingleton<IIdentityPropertyExtractor, IdentityPropertyExtractor>();
+
 			services.AddSingleton(this.customSettings ?? IdentityPropertySourceSettings.Default);
 		}
 
@@ -49,6 +52,6 @@ public class IdentitySourceSettings : IIdentitySourceSettings
 
 	private bool AlreadyInitialized(IServiceCollection services)
 	{
-		return services.Any(sd => !sd.IsKeyedService && sd.ServiceType == typeof(IdentityPropertySourceSettings));
+		return services.Any(sd => !sd.IsKeyedService && sd.Lifetime == ServiceLifetime.Singleton && sd.ServiceType == typeof(IIdentityInfoSource));
 	}
 }
