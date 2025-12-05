@@ -1,17 +1,14 @@
 ﻿using System.Linq.Expressions;
+
 using CommonFramework.Maybe;
 
 namespace CommonFramework.ExpressionComparers;
 
-internal class MemberBindingComparer : IEqualityComparer<MemberBinding>
+public class MemberBindingComparer(ExpressionComparer rootComparer) : IEqualityComparer<MemberBinding>
 {
-    private MemberBindingComparer()
-    {
+	private readonly ElementInitComparer elementInitComparer = new (rootComparer);
 
-    }
-
-
-    public bool Equals(MemberBinding? preX, MemberBinding? preY)
+	public bool Equals(MemberBinding? preX, MemberBinding? preY)
     {
         if (ReferenceEquals(preX, preY)) return true;
         if (preX is null || preY is null) return false;
@@ -24,13 +21,13 @@ internal class MemberBindingComparer : IEqualityComparer<MemberBinding>
 
                  from y in (preY as MemberAssignment).ToMaybe()
 
-                 select ExpressionComparer.Value.Equals(x.Expression, y.Expression))
+                 select rootComparer.Equals(x.Expression, y.Expression))
 
                .Or(() => from x in (preX as MemberListBinding).ToMaybe()
 
                          from y in (preY as MemberListBinding).ToMaybe()
 
-                         select x.Initializers.SequenceEqual(y.Initializers, ElementInitComparer.Value))
+                         select x.Initializers.SequenceEqual(y.Initializers, this.elementInitComparer))
 
                .Or(() => from x in (preX as MemberMemberBinding).ToMaybe()
 
@@ -45,7 +42,4 @@ internal class MemberBindingComparer : IEqualityComparer<MemberBinding>
     {
         return memberBinding.BindingType.GetHashCode() ^ memberBinding.Member.GetHashCode();
     }
-
-
-    public static readonly MemberBindingComparer Value = new MemberBindingComparer();
 }

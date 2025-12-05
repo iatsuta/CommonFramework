@@ -24,7 +24,7 @@ public class IdentitySourceSettings : IIdentitySourceSettings
 	{
 		var identityInfo = new IdentityInfo<TDomainObject, TIdent>(idPath);
 
-		this.actions.Add(sc => sc.AddSingleton(identityInfo).AddSingleton<IdentityInfo<TDomainObject>>().AddSingleton<IdentityInfo>(identityInfo));
+		this.actions.Add(sc => sc.AddSingleton(identityInfo).AddSingleton<IdentityInfo<TDomainObject>>(identityInfo).AddSingleton<IdentityInfo>(identityInfo));
 
 		return this;
 	}

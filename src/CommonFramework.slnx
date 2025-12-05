@@ -1,7 +1,9 @@
 <Solution>
   <Folder Name="/_Tests/">
     <Project Path="CommonFramework.DependencyInjection.Tests/CommonFramework.DependencyInjection.Tests.csproj" />
+    <Project Path="CommonFramework.IdentitySource.Tests/CommonFramework.IdentitySource.Tests.csproj" />
     <Project Path="CommonFramework.Tests/CommonFramework.Tests.csproj" />
+    <Project Path="CommonFramework.VisualIdentitySource.Tests/CommonFramework.VisualIdentitySource.Tests.csproj" />
   </Folder>
 
   <Folder Name="/__SolutionItems/">

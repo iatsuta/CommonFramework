@@ -2,13 +2,10 @@
 
 namespace CommonFramework.ExpressionComparers;
 
-internal class NewArrayComparer : ExpressionComparer<NewArrayExpression>
+public class NewArrayComparer(ExpressionComparer rootComparer) : ExpressionComparer<NewArrayExpression>
 {
-    protected override bool PureEquals(NewArrayExpression x, NewArrayExpression y)
+	protected override bool PureEquals(NewArrayExpression x, NewArrayExpression y)
     {
-        return x.Expressions.SequenceEqual(y.Expressions, ExpressionComparer.Value);
+        return x.Expressions.SequenceEqual(y.Expressions, rootComparer);
     }
-
-
-    public static readonly NewArrayComparer Value = new NewArrayComparer();
 }
