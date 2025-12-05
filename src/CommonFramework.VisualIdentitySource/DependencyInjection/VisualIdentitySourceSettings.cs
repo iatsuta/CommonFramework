@@ -26,6 +26,14 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
 		return this;
 	}
 
+	public IVisualIdentitySourceSettings SetDisplay<TDomainObject>(Func<TDomainObject, string> displayFunc)
+		where TDomainObject : class
+	{
+		this.actions.Add(sc => sc.AddSingleton(new DisplayObjectInfo<TDomainObject>(displayFunc)));
+
+		return this;
+	}
+
 	public void Initialize(IServiceCollection services)
 	{
 		if (this.AlreadyInitialized(services))
@@ -37,6 +45,11 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
 		}
 		else
 		{
+			services.AddSingleton<IVisualIdentityInfoSource, VisualIdentityInfoSource>();
+			services.AddSingleton<IVisualIdentityPropertyExtractor, VisualIdentityPropertyExtractor>();
+
+			services.AddSingleton<IDomainObjectDisplayService, DomainObjectDisplayService>();
+
 			services.AddSingleton(this.customSettings ?? VisualIdentityPropertySourceSettings.Default);
 		}
 
@@ -48,6 +61,6 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
 
 	private bool AlreadyInitialized(IServiceCollection services)
 	{
-		return services.Any(sd => !sd.IsKeyedService && sd.ServiceType == typeof(VisualIdentityPropertySourceSettings));
+		return services.Any(sd => !sd.IsKeyedService && sd.Lifetime == ServiceLifetime.Singleton && sd.ServiceType == typeof(IVisualIdentityInfoSource));
 	}
 }
