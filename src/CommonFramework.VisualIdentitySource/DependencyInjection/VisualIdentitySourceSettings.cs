@@ -21,7 +21,9 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
 
 	public IVisualIdentitySourceSettings SetName<TDomainObject>(Expression<Func<TDomainObject, string>> namePath)
 	{
-		this.actions.Add(sc => sc.AddSingleton(new VisualIdentityInfo<TDomainObject>(namePath)));
+		var visualIdentityInfo = new VisualIdentityInfo<TDomainObject>(namePath);
+
+		this.actions.Add(sc => sc.AddSingleton(visualIdentityInfo).AddSingleton<VisualIdentityInfo>(visualIdentityInfo));
 
 		return this;
 	}
@@ -29,7 +31,9 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
 	public IVisualIdentitySourceSettings SetDisplay<TDomainObject>(Func<TDomainObject, string> displayFunc)
 		where TDomainObject : class
 	{
-		this.actions.Add(sc => sc.AddSingleton(new DisplayObjectInfo<TDomainObject>(displayFunc)));
+		var displayObjectInfo = new DisplayObjectInfo<TDomainObject>(displayFunc);
+
+		this.actions.Add(sc => sc.AddSingleton(displayObjectInfo).AddSingleton<DisplayObjectInfo>(displayObjectInfo));
 
 		return this;
 	}
