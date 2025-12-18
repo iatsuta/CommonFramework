@@ -34,20 +34,32 @@ public class VisualIdentityInfoSource(IVisualIdentityPropertyExtractor propertyE
 		}
 
 	}).WithLock();
+    public VisualIdentityInfo<TDomainObject>? TryGetVisualIdentityInfo<TDomainObject>()
+    {
+        return (VisualIdentityInfo<TDomainObject>?)this.TryGetVisualIdentityInfo(typeof(TDomainObject));
+    }
 
+    public VisualIdentityInfo GetVisualIdentityInfo(Type domainObjectType)
+    {
+        return this.TryGetVisualIdentityInfo(domainObjectType) ?? throw this.GetMissedError(domainObjectType);
+    }
 
-	public VisualIdentityInfo<TDomainObject>? TryGetVisualIdentityInfo<TDomainObject>()
+    public VisualIdentityInfo? TryGetVisualIdentityInfo(Type domainObjectType)
+    {
+        return this.cache[domainObjectType];
+    }
+
+    public VisualIdentityInfo<TDomainObject> GetVisualIdentityInfo<TDomainObject>()
 	{
-		return (VisualIdentityInfo<TDomainObject>?)this.cache[typeof(TDomainObject)];
+		return this.TryGetVisualIdentityInfo<TDomainObject>() ?? throw this.GetMissedError(typeof(TDomainObject));
 	}
 
-	public VisualIdentityInfo<TDomainObject> GetVisualIdentityInfo<TDomainObject>()
-	{
-		return this.TryGetVisualIdentityInfo<TDomainObject>() ??
-		       throw new Exception($"{nameof(VisualIdentityInfo)} for {typeof(TDomainObject).Name} not found");
-	}
+    private Exception GetMissedError(Type domainObjectType)
+    {
+        return new Exception($"{nameof(VisualIdentityInfo)} for {domainObjectType.Name} not found");
+    }
 
-	private static VisualIdentityInfo<TDomainObject> CreateVisualIdentityInfo<TDomainObject>(Expression<Func<TDomainObject, string>> namePath)
+    private static VisualIdentityInfo<TDomainObject> CreateVisualIdentityInfo<TDomainObject>(Expression<Func<TDomainObject, string>> namePath)
 	{
 		return new VisualIdentityInfo<TDomainObject>(namePath);
 	}
