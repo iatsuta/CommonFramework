@@ -4,11 +4,16 @@ using CommonFramework.ExpressionComparers;
 
 namespace CommonFramework;
 
-public record PropertyAccessors<TSource, TProperty>(Expression<Func<TSource, TProperty>> Path)
+public record PropertyAccessors<TSource, TProperty>(
+    Expression<Func<TSource, TProperty>> Path,
+    Func<TSource, TProperty> Getter,
+    Action<TSource, TProperty> Setter)
 {
-	public Func<TSource, TProperty> Getter { get; } = Path.Compile();
-
-	public Action<TSource, TProperty> Setter { get; } = Path.ToSetLambdaExpression().Compile();
+    public PropertyAccessors(
+        Expression<Func<TSource, TProperty>> path)
+        : this(path, path.Compile(), path.ToSetLambdaExpression().Compile())
+    {
+    }
 
 	public virtual bool Equals(PropertyAccessors<TSource, TProperty>? other) =>
 		object.ReferenceEquals(this, other)
