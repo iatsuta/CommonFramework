@@ -19,7 +19,7 @@ public class IdentitySourceTests
 
 		var service = sp.GetRequiredService<IIdentityInfoSource>();
 
-		var expectedResult = idLambda.GetProperty().ToLambdaExpression();
+		var expectedResult = idLambda.GetProperty().ToGetLambdaExpression();
 
 		//Act
 		var result = service.GetIdentityInfo<TestObject1, int>();
