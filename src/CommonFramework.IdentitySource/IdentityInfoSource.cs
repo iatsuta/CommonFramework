@@ -18,7 +18,7 @@ public class IdentityInfoSource(IIdentityPropertyExtractor propertyExtractor, IE
         {
             var idProperty = propertyExtractor.Extract(domainType);
 
-            var idPath = idProperty.ToLambdaExpression();
+            var idPath = idProperty.ToGetLambdaExpression();
 
             return new Func<Expression<Func<object, object>>, IdentityInfo<object, object>>(CreateIdentityInfo)
                 .CreateGenericMethod(domainType, idProperty.PropertyType)

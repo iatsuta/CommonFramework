@@ -19,7 +19,7 @@ public class VisualIdentitySourceTests
 
 		var service = sp.GetRequiredService<IVisualIdentityInfoSource>();
 
-		var expectedResult = nameLambda.GetProperty().ToLambdaExpression();
+		var expectedResult = nameLambda.GetProperty().ToGetLambdaExpression();
 
 		//Act
 		var result = service.GetVisualIdentityInfo<TestObject1>();

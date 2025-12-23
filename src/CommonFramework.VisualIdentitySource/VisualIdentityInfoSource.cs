@@ -25,7 +25,7 @@ public class VisualIdentityInfoSource(IVisualIdentityPropertyExtractor propertyE
 			}
 			else
 			{
-				var idPath = nameProperty.ToLambdaExpression();
+				var idPath = nameProperty.ToGetLambdaExpression();
 
 				return new Func<Expression<Func<object, string>>, VisualIdentityInfo<object>>(CreateVisualIdentityInfo)
 					.CreateGenericMethod(domainType)

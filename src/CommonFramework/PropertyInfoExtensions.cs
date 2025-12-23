@@ -7,39 +7,37 @@ namespace CommonFramework;
 
 public static class PropertyInfoExtensions
 {
-    public static Expression<Func<TSource, TProperty>> ToGetLambdaExpression<TSource, TProperty>(this PropertyInfo property)
+    extension(PropertyInfo property)
     {
-        return PropertyLambdaCache<TSource, TProperty>.GetLambdaCache[property];
-    }
+        public Expression<Func<TSource, TProperty>> ToGetLambdaExpression<TSource, TProperty>()
+        {
+            return PropertyLambdaCache<TSource, TProperty>.GetLambdaCache[property];
+        }
 
-    public static Expression<Action<TSource, TProperty>> ToSetLambdaExpression<TSource, TProperty>(this PropertyInfo property)
-    {
-        return PropertyLambdaCache<TSource, TProperty>.SetLambdaCache[property];
-    }
+        public Expression<Action<TSource, TProperty>> ToSetLambdaExpression<TSource, TProperty>()
+        {
+            return PropertyLambdaCache<TSource, TProperty>.SetLambdaCache[property];
+        }
 
-    public static LambdaExpression ToGetLambdaExpression(this PropertyInfo property, Type? sourceType = null)
-    {
-        return PropertyLambdaCache.GetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
-    }
+        public LambdaExpression ToGetLambdaExpression(Type? sourceType = null)
+        {
+            return PropertyLambdaCache.GetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
+        }
 
-    public static LambdaExpression ToSetLambdaExpression(this PropertyInfo property, Type? sourceType = null)
-    {
-        return PropertyLambdaCache.SetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
-    }
+        public LambdaExpression ToSetLambdaExpression(Type? sourceType = null)
+        {
+            return PropertyLambdaCache.SetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
+        }
 
-    public static LambdaExpression ToLambdaExpression(this PropertyInfo property, Type? sourceType = null)
-    {
-        return PropertyLambdaCache.GetLambdaCache!.GetValue(property, sourceType ?? property.ReflectedType);
-    }
+        public Func<TSource, TProperty> GetGetValueFunc<TSource, TProperty>()
+        {
+            return PropertyLambdaCache<TSource, TProperty>.GetFuncCache[property];
+        }
 
-    public static Func<TSource, TProperty> GetGetValueFunc<TSource, TProperty>(this PropertyInfo property)
-    {
-        return PropertyLambdaCache<TSource, TProperty>.GetFuncCache[property];
-    }
-
-    public static Action<TSource, TProperty> GetSetValueAction<TSource, TProperty>(this PropertyInfo property)
-    {
-        return PropertyLambdaCache<TSource, TProperty>.SetActionCache[property];
+        public Action<TSource, TProperty> GetSetValueAction<TSource, TProperty>()
+        {
+            return PropertyLambdaCache<TSource, TProperty>.SetActionCache[property];
+        }
     }
 
     private static class PropertyLambdaCache
@@ -73,7 +71,7 @@ public static class PropertyInfoExtensions
     {
         public static readonly IDictionaryCache<PropertyInfo, Expression<Func<TSource, TProperty>>> GetLambdaCache =
             new DictionaryCache<PropertyInfo, Expression<Func<TSource, TProperty>>>(property =>
-                (Expression<Func<TSource, TProperty>>)property.ToLambdaExpression(typeof(TSource))).WithLock();
+                (Expression<Func<TSource, TProperty>>)property.ToGetLambdaExpression(typeof(TSource))).WithLock();
 
         public static readonly IDictionaryCache<PropertyInfo, Func<TSource, TProperty>> GetFuncCache = new DictionaryCache<PropertyInfo, Func<TSource, TProperty>>(property =>
             GetLambdaCache[property].Compile()).WithLock();
