@@ -8,5 +8,5 @@ public interface IServiceProxyFactory
         where TServiceImpl : TService
         => this.Create<TService>(typeof(TServiceImpl), args);
 
-    TService Create<TService>(Type requiredService, params object[] args);
+    TService Create<TService>(Type instanceServiceType, params object[] args);
 }
