@@ -13,21 +13,24 @@ public static class ServiceCollectionExtensions
 
             return services;
         }
+    }
 
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddScopedFrom<TService, TSource>(Func<TSource, TService> selector)
+            where TService : class
+            where TSource : notnull
+        {
+            return services.AddScoped(sp => selector(sp.GetRequiredService<TSource>()));
+        }
 
         public IServiceCollection AddScopedFrom<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.AddScopedFrom<TService, TServiceImplementation>(v => v);
-	    }
-
-	    public IServiceCollection AddScopedFrom<TService, TSource>(Func<TSource, TService> selector)
-		    where TService : class
-		    where TSource : notnull
-	    {
-		    return services.AddScoped(sp => selector(sp.GetRequiredService<TSource>()));
+            where TServiceImplementation : class, TService
+            where TService : class
+        {
+            return services.AddScopedFrom<TService, TServiceImplementation>(v => v);
         }
+
 
         public IServiceCollection AddScopedFrom<TService>(Func<IServiceProxyFactory, TService> selector)
             where TService : class
@@ -40,28 +43,22 @@ public static class ServiceCollectionExtensions
         {
             return services.AddScopedFrom<TService, IServiceProvider>(selector);
         }
+    }
 
-
-
-
-        public IServiceCollection AddSingletonFrom<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.AddSingletonFrom<TService, TServiceImplementation>(v => v);
-	    }
-
-	    public IServiceCollection AddSingletonFrom<TService, TSource>(Func<TSource, TService> selector)
-		    where TService : class
-		    where TSource : notnull
-	    {
-		    return services.AddSingleton(sp => selector(sp.GetRequiredService<TSource>()));
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddSingletonFrom<TService, TSource>(Func<TSource, TService> selector)
+            where TService : class
+            where TSource : notnull
+        {
+            return services.AddSingleton(sp => selector(sp.GetRequiredService<TSource>()));
         }
 
-        public IServiceCollection AddSingletonFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+        public IServiceCollection AddSingletonFrom<TService, TServiceImplementation>()
+            where TServiceImplementation : class, TService
             where TService : class
         {
-            return services.AddSingletonFrom<TService, IServiceProxyFactory>(selector);
+            return services.AddSingletonFrom<TService, TServiceImplementation>(v => v);
         }
 
         public IServiceCollection AddSingletonFrom<TService>(Func<IServiceProvider, TService> selector)
@@ -70,35 +67,37 @@ public static class ServiceCollectionExtensions
             return services.AddSingletonFrom<TService, IServiceProvider>(selector);
         }
 
+        public IServiceCollection AddSingletonFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+            where TService : class
+        {
+            return services.AddSingletonFrom<TService, IServiceProxyFactory>(selector);
+        }
+    }
 
-
+    extension(IServiceCollection services)
+    {
         public IServiceCollection ReplaceScoped<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.Replace(ServiceDescriptor.Scoped<TService, TServiceImplementation>());
-	    }
+            where TServiceImplementation : class, TService
+            where TService : class
+        {
+            return services.Replace(ServiceDescriptor.Scoped<TService, TServiceImplementation>());
+        }
+    }
 
-
-
+    extension(IServiceCollection services)
+    {
         public IServiceCollection ReplaceScopedFrom<TService, TSource>(Func<TSource, TService> selector)
             where TService : class
             where TSource : notnull
         {
-            return services.ReplaceScopedFrom(sp => selector(sp.GetRequiredService<TSource>()));
+            return services.Replace(ServiceDescriptor.Scoped<TService>(sp => selector(sp.GetRequiredService<TSource>())));
         }
 
         public IServiceCollection ReplaceScopedFrom<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.Replace(ServiceDescriptor.Scoped<TService>(sp => sp.GetRequiredService<TServiceImplementation>()));
-        }
-
-        public IServiceCollection ReplaceScopedFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+            where TServiceImplementation : class, TService
             where TService : class
         {
-            return services.ReplaceScopedFrom<TService, IServiceProxyFactory>(selector);
+            return services.ReplaceScopedFrom<TService, TServiceImplementation>(v => v);
         }
 
         public IServiceCollection ReplaceScopedFrom<TService>(Func<IServiceProvider, TService> selector)
@@ -107,48 +106,55 @@ public static class ServiceCollectionExtensions
             return services.ReplaceScopedFrom<TService, IServiceProvider>(selector);
         }
 
+        public IServiceCollection ReplaceScopedFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+            where TService : class
+        {
+            return services.ReplaceScopedFrom<TService, IServiceProxyFactory>(selector);
+        }
+    }
 
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection ReplaceSingleton<TService, TServiceImplementation>()
+            where TServiceImplementation : class, TService
+            where TService : class
+        {
+            return services.Replace(ServiceDescriptor.Singleton<TService, TServiceImplementation>());
+        }
 
         public IServiceCollection ReplaceSingleton<TService>(TService instance)
-		    where TService : class
-	    {
-		    return services.Replace(ServiceDescriptor.Singleton(instance));
-	    }
+            where TService : class
+        {
+            return services.Replace(ServiceDescriptor.Singleton(instance));
+        }
+    }
 
-	    public IServiceCollection ReplaceSingleton<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.Replace(ServiceDescriptor.Singleton<TService, TServiceImplementation>());
-	    }
-
-
-
-
-	    public IServiceCollection ReplaceSingletonFrom<TService, TServiceImplementation>()
-		    where TServiceImplementation : class, TService
-		    where TService : class
-	    {
-		    return services.Replace(ServiceDescriptor.Singleton<TService>(sp => sp.GetRequiredService<TServiceImplementation>()));
-	    }
-
+    extension(IServiceCollection services)
+    {
         public IServiceCollection ReplaceSingletonFrom<TService, TSource>(Func<TSource, TService> selector)
             where TService : class
             where TSource : notnull
         {
-            return services.ReplaceSingletonFrom(sp => selector(sp.GetRequiredService<TSource>()));
+            return services.Replace(ServiceDescriptor.Singleton<TService>(sp => selector(sp.GetRequiredService<TSource>())));
         }
 
-        public IServiceCollection ReplaceSingletonFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+        public IServiceCollection ReplaceSingletonFrom<TService, TServiceImplementation>()
+            where TServiceImplementation : class, TService
             where TService : class
         {
-            return services.ReplaceSingletonFrom<TService, IServiceProxyFactory>(selector);
+            return services.ReplaceSingletonFrom<TService, TServiceImplementation>(v => v);
         }
 
         public IServiceCollection ReplaceSingletonFrom<TService>(Func<IServiceProvider, TService> selector)
             where TService : class
         {
             return services.ReplaceSingletonFrom<TService, IServiceProvider>(selector);
+        }
+
+        public IServiceCollection ReplaceSingletonFrom<TService>(Func<IServiceProxyFactory, TService> selector)
+            where TService : class
+        {
+            return services.ReplaceSingletonFrom<TService, IServiceProxyFactory>(selector);
         }
     }
 }
