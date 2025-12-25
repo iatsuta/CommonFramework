@@ -41,7 +41,7 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
 
             let actualImplementationType = service.IsKeyedService ? service.KeyedImplementationType : service.ImplementationType
 
-            let actualImplementationFactory = service.IsKeyedService ? (object)service.KeyedImplementationFactory : service.ImplementationFactory
+            let actualImplementationFactory = service.IsKeyedService ? (object?)service.KeyedImplementationFactory : service.ImplementationFactory
 
             let serviceKey = service.IsKeyedService ? service.ServiceKey : null
 

@@ -12,12 +12,12 @@ public static class MethodInfoExtensions
 		    return methodInfo.Invoke<TResult>(source, []);
 	    }
 
-	    public TResult Invoke<TResult>(object? source, IEnumerable<object> args)
+	    public TResult Invoke<TResult>(object? source, IEnumerable<object?> args)
 	    {
 		    return (TResult)methodInfo.Invoke(source, args.ToArray())!;
 	    }
 
-	    public TResult Invoke<TResult>(object? source, object arg1, params object[] args)
+	    public TResult Invoke<TResult>(object? source, object? arg1, params object?[] args)
 	    {
 		    return methodInfo.Invoke<TResult>(source, new[] { arg1 }.Concat(args));
 	    }
