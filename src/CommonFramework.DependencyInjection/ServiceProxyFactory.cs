@@ -2,10 +2,12 @@
 
 namespace CommonFramework.DependencyInjection;
 
-public class ServiceProxyFactory(IServiceProvider serviceProvider) : IServiceProxyFactory
+public class ServiceProxyFactory(IServiceProvider serviceProvider, IServiceProxyTypeRedirector redirector) : IServiceProxyFactory
 {
-    public virtual TService Create<TService>(Type requiredService, object[] args)
+    public virtual TService Create<TService>(Type instanceServiceType, object[] args)
     {
-        return (TService)ActivatorUtilities.CreateInstance(serviceProvider, requiredService, args);
+        var realInstanceServiceType = redirector.TryRedirect(instanceServiceType) ?? instanceServiceType;
+
+        return (TService)ActivatorUtilities.CreateInstance(serviceProvider, realInstanceServiceType, args);
     }
 }

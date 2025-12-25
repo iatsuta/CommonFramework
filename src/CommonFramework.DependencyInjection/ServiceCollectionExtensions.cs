@@ -7,9 +7,16 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection TryAddServiceProxyFactory()
+        public IServiceCollection AddServiceProxyFactory(Action<IServiceProxyBuilder>? setup = null)
         {
             services.TryAddTransient<IServiceProxyFactory, ServiceProxyFactory>();
+            services.TryAddSingleton<IServiceProxyTypeRedirector, ServiceProxyTypeRedirector>();
+
+            var serviceProxyBuilder = new ServiceProxyBuilder();
+
+            setup?.Invoke(serviceProxyBuilder);
+
+            serviceProxyBuilder.Initialize(services);
 
             return services;
         }
@@ -31,17 +38,16 @@ public static class ServiceCollectionExtensions
             return services.AddScopedFrom<TService, TServiceImplementation>(v => v);
         }
 
+        public IServiceCollection AddScopedFrom<TService>(Func<IServiceProvider, TService> selector)
+            where TService : class
+        {
+            return services.AddScopedFrom<TService, IServiceProvider>(selector);
+        }
 
         public IServiceCollection AddScopedFrom<TService>(Func<IServiceProxyFactory, TService> selector)
             where TService : class
         {
             return services.AddScopedFrom<TService, IServiceProxyFactory>(selector);
-        }
-
-        public IServiceCollection AddScopedFrom<TService>(Func<IServiceProvider, TService> selector)
-            where TService : class
-        {
-            return services.AddScopedFrom<TService, IServiceProvider>(selector);
         }
     }
 
@@ -82,6 +88,11 @@ public static class ServiceCollectionExtensions
         {
             return services.Replace(ServiceDescriptor.Scoped<TService, TServiceImplementation>());
         }
+
+        public IServiceCollection ReplaceScoped(Type serviceType, Type implementationType)
+        {
+            return services.Replace(ServiceDescriptor.Scoped(serviceType, implementationType));
+        }
     }
 
     extension(IServiceCollection services)
@@ -115,6 +126,12 @@ public static class ServiceCollectionExtensions
 
     extension(IServiceCollection services)
     {
+        public IServiceCollection ReplaceSingleton<TService>(TService instance)
+            where TService : class
+        {
+            return services.Replace(ServiceDescriptor.Singleton(instance));
+        }
+
         public IServiceCollection ReplaceSingleton<TService, TServiceImplementation>()
             where TServiceImplementation : class, TService
             where TService : class
@@ -122,10 +139,9 @@ public static class ServiceCollectionExtensions
             return services.Replace(ServiceDescriptor.Singleton<TService, TServiceImplementation>());
         }
 
-        public IServiceCollection ReplaceSingleton<TService>(TService instance)
-            where TService : class
+        public IServiceCollection ReplaceSingleton(Type serviceType, Type implementationType)
         {
-            return services.Replace(ServiceDescriptor.Singleton(instance));
+            return services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
         }
     }
 
