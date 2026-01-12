@@ -8,7 +8,18 @@ namespace CommonFramework;
 
 public static class ExpressionExtensions
 {
-	extension<TSource, TProperty>(Expression<Func<TSource, TProperty>> path)
+    public static Expression<Func<TArg1, TArg2, TResult>> UnCurrying<TArg1, TArg2, TResult>(this Expression<Func<TArg1, Expression<Func<TArg2, TResult>>>> baseExpr)
+    {
+        var quoteLambda = (UnaryExpression)baseExpr.Body;
+        var innerLambda = (LambdaExpression)quoteLambda.Operand;
+
+        var arg1 = baseExpr.Parameters.Single();
+        var arg2 = innerLambda.Parameters.Single();
+
+        return Expression.Lambda<Func<TArg1, TArg2, TResult>>(innerLambda.Body, arg1, arg2);
+    }
+
+    extension<TSource, TProperty>(Expression<Func<TSource, TProperty>> path)
 	{
 		public PropertyAccessors<TSource, TProperty> ToPropertyAccessors() => new (path);
 
@@ -26,8 +37,13 @@ public static class ExpressionExtensions
 				select property;
 
 			return request.GetValue(() => new ArgumentException("not property expression", nameof(path)));
-		}
-	}
+        }
+
+        public Expression<Func<TNextSource, TProperty>> OverrideInput<TNextSource>(Expression<Func<TNextSource, TSource>> expr1)
+        {
+            return Expression.Lambda<Func<TNextSource, TProperty>>(path.Body.Override(path.Parameters.Single(), expr1.Body), expr1.Parameters);
+        }
+    }
 
 	public static IEnumerable<Expression> GetChildren(this MethodCallExpression expression)
     {
@@ -42,251 +58,275 @@ public static class ExpressionExtensions
         }
     }
 
-    public static Expression<Func<IEnumerable<T>, IEnumerable<T>>> ToCollectionFilter<T>(this Expression<Func<T, bool>> filter)
+    extension<T>(IEnumerable<Expression<Func<T, bool>>> source)
     {
-        var param = Expression.Parameter(typeof(IEnumerable<T>));
-
-        var whereMethod = new Func<IEnumerable<T>, Func<T, bool>, IEnumerable<T>>(Enumerable.Where).Method;
-
-        return Expression.Lambda<Func<IEnumerable<T>, IEnumerable<T>>>(Expression.Call(null, whereMethod, param, filter), param);
-    }
-
-    public static Maybe<MemberInfo> GetMember(this Expression expr)
-    {
-        return (expr as UnaryExpression).ToMaybe().Where(unaryExpr => unaryExpr.NodeType == ExpressionType.Convert)
-            .SelectMany(unaryExpr => unaryExpr.Operand.GetMember())
-
-            .Or(() => (expr as MethodCallExpression).ToMaybe().Select(callExpr => (MemberInfo)callExpr.Method))
-
-            .Or(() => (expr as MemberExpression).ToMaybe().Select(memberExpr => memberExpr.Member));
-    }
-
-    public static Expression<Func<T, bool>> BuildAnd<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
-    {
-        return
-            from v1 in expr1
-            from v2 in expr2
-            select v1 && v2;
-    }
-
-    public static Expression<Func<T, bool>> BuildAnd<T>(this IEnumerable<Expression<Func<T, bool>>> source)
-    {
-        return source.Match(() => _ => true,
-            single => single,
-            many => many.Aggregate(BuildAnd));
-    }
-
-    public static Expression<Func<T1, T2, bool>> BuildAnd<T1, T2>(this Expression<Func<T1, T2, bool>> expr1, Expression<Func<T1, T2, bool>> expr2)
-    {
-        var newExpr2Body = expr2.GetBodyWithOverrideParameters(expr1.Parameters.ToArray<Expression>());
-
-        var newBody = Expression.AndAlso(expr1.Body, newExpr2Body);
-
-        return Expression.Lambda<Func<T1, T2, bool>>(newBody, expr1.Parameters);
-    }
-
-    public static Expression<Func<TResult, bool>> BuildOr<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, Expression<Func<TResult, bool>>> selector)
-    {
-        return source.Select(selector).BuildOr();
-    }
-
-    public static Expression<Func<T, bool>> BuildOr<T>(this IEnumerable<Expression<Func<T, bool>>> source)
-    {
-        return source.Match(() => _ => false,
-            single => single,
-            many => many.Aggregate(BuildOr));
-    }
-
-    public static Expression<Func<T, bool>> BuildOr<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
-    {
-        return
-            from v1 in expr1
-            from v2 in expr2
-            select v1 || v2;
-    }
-
-    public static Expression<Func<T1, T2, bool>> BuildOr<T1, T2>(this Expression<Func<T1, T2, bool>> expr1, Expression<Func<T1, T2, bool>> expr2)
-    {
-        var newExpr2Body = expr2.GetBodyWithOverrideParameters(expr1.Parameters.ToArray<Expression>());
-
-        var newBody = Expression.OrElse(expr1.Body, newExpr2Body);
-
-        return Expression.Lambda<Func<T1, T2, bool>>(newBody, expr1.Parameters);
-    }
-
-    public static Expression<Func<T1, T3>> OverrideInput<T1, T2, T3>(this Expression<Func<T2, T3>> expr2, Expression<Func<T1, T2>> expr1)
-    {
-        return Expression.Lambda<Func<T1, T3>>(expr2.Body.Override(expr2.Parameters.Single(), expr1.Body), expr1.Parameters);
-    }
-
-    public static Expression<Func<T, bool>> Not<T>(this Expression<Func<T, bool>> expr)
-    {
-        return
-            from v in expr
-            select !v;
-    }
-
-    public static Expression<Func<IEnumerable<TArg>, bool>> ToEnumerableAny<TArg>(this Expression<Func<TArg, bool>> source)
-    {
-        var param = Expression.Parameter(typeof(IEnumerable<TArg>));
-
-        var anyMethod = new Func<IEnumerable<TArg>, Func<TArg, bool>, bool>(Enumerable.Any).Method;
-
-        var callExpr = Expression.Call(null, anyMethod, param, source);
-
-        return Expression.Lambda<Func<IEnumerable<TArg>, bool>>(callExpr, param);
-    }
-
-    public static Expression<TDelegate> Optimize<TDelegate>(this Expression<TDelegate> expression)
-    {
-        return expression.UpdateBody(OptimizeBooleanLogicVisitor.Value);
-    }
-
-    public static Expression<TDelegate> ExpandConst<TDelegate>(this Expression<TDelegate> expression)
-    {
-        return expression.UpdateBody(ExpandConstVisitor.Value);
-    }
-
-    public static Expression<TDelegate> UpdateBody<TDelegate>(this Expression<TDelegate> expression, ExpressionVisitor bodyVisitor)
-    {
-        return expression.Update(bodyVisitor.Visit(expression.Body), expression.Parameters);
-    }
-
-    public static LambdaExpression UpdateBodyBase(this LambdaExpression expression, ExpressionVisitor bodyVisitor)
-    {
-        return Expression.Lambda(bodyVisitor.Visit(expression.Body), expression.Parameters);
-    }
-
-    public static Expression GetBodyWithOverrideParameters(this LambdaExpression lambda, params Expression[] newExpressions)
-    {
-        var pairs = lambda.Parameters.ZipStrong(newExpressions, (parameter, newExpression) => new { Parameter = parameter, NewExpression = newExpression });
-
-        return pairs.Aggregate(lambda.Body, (expr, pair) => expr.Override(pair.Parameter, pair.NewExpression));
-    }
-
-    public static Expression Override(this Expression baseExpression, Expression oldExpr, Expression newExpr)
-    {
-        return new OverrideExpressionVisitor(oldExpr, newExpr).Visit(baseExpression)!;
-    }
-
-    public static Expression UpdateBase(this Expression source, IEnumerable<ExpressionVisitor> visitors)
-    {
-        return visitors.Aggregate(source, (expr, visitor) => visitor.Visit(expr));
-    }
-
-    public static Expression UpdateBase(this Expression source, params ExpressionVisitor[] visitors)
-    {
-        return source.UpdateBase((IEnumerable<ExpressionVisitor>)visitors);
-    }
-
-    public static Maybe<TValue?> GetDeepMemberConstValue<TValue>(this Expression expression)
-    {
-        return GetDeepMemberConstValue(expression).Where(v => v is TValue).Select(v => (TValue?)v);
-    }
-
-    public static Maybe<object?> GetDeepMemberConstValue(this Expression expression)
-    {
-        return expression.GetDeepMemberConstExpression().Select(expr => expr.Value);
-    }
-
-    public static Maybe<ConstantExpression> GetMemberConstExpression(this Expression expression)
-    {
-        return (expression as ConstantExpression).ToMaybe()
-
-            .Or(() =>
-
-                from memberExpr in (expression as MemberExpression).ToMaybe()
-
-                from constExpr in (memberExpr.Expression as ConstantExpression).ToMaybe()
-
-                from fieldInfo in (memberExpr.Member as FieldInfo).ToMaybe()
-
-                select Expression.Constant(fieldInfo.GetValue(constExpr.Value), fieldInfo.FieldType));
-    }
-
-    /// <summary> Returns constant value from expression
-    /// </summary>
-    /// <typeparam name="TValue">cast value to specified Type if possible</typeparam>
-    /// <param name="expression">expression to get value from</param>
-    /// <returns>constant value of specified Type</returns>
-    public static Maybe<TValue?> GetMemberConstValue<TValue>(this Expression expression)
-    {
-        return expression.GetMemberConstValue().Where(v => v is TValue).Select(v => (TValue?)v);
-    }
-
-    public static Maybe<object?> GetMemberConstValue(this Expression expression)
-    {
-        return expression.GetMemberConstExpression().Select(expr => expr.Value);
-    }
-
-    public static Maybe<ConstantExpression> GetDeepMemberConstExpression(this Expression expression)
-    {
-        var result = expression.GetPureDeepMemberConstExpression();
-        if (result == null)
+        public Expression<Func<T, bool>> BuildAnd()
         {
-            return Maybe<ConstantExpression>.Nothing;
+            return source.Match(() => _ => true,
+                single => single,
+                many => many.Aggregate(BuildAnd));
         }
 
-        return expression is ConstantExpression constExpr ? constExpr.ToMaybe() : Maybe.Maybe.Return(result);
+        public Expression<Func<T, bool>> BuildOr()
+        {
+            return source.Match(() => _ => false,
+                single => single,
+                many => many.Aggregate(BuildOr));
+        }
     }
 
-    public static ConstantExpression? GetPureDeepMemberConstExpression(this Expression expression)
+    extension<T1, T2>(Expression<Func<T1, T2, bool>> expr1)
     {
-        if (expression is ConstantExpression constExpr)
+        public Expression<Func<T1, T2, bool>> BuildAnd(Expression<Func<T1, T2, bool>> expr2)
         {
-            return constExpr;
+            var newExpr2Body = expr2.GetBodyWithOverrideParameters(expr1.Parameters.ToArray<Expression>());
+
+            var newBody = Expression.AndAlso(expr1.Body, newExpr2Body);
+
+            return Expression.Lambda<Func<T1, T2, bool>>(newBody, expr1.Parameters);
         }
 
-        if (expression is not MemberExpression memberExpr)
+        public Expression<Func<T1, T2, bool>> BuildOr(Expression<Func<T1, T2, bool>> expr2)
         {
-            return null;
+            var newExpr2Body = expr2.GetBodyWithOverrideParameters(expr1.Parameters.ToArray<Expression>());
+
+            var newBody = Expression.OrElse(expr1.Body, newExpr2Body);
+
+            return Expression.Lambda<Func<T1, T2, bool>>(newBody, expr1.Parameters);
         }
-
-        var memberChains = memberExpr.GetAllElements(z => z.Expression as MemberExpression).TakeWhile(x => x != null).ToList();
-
-        var startExpr = memberChains.Last();
-
-        constExpr = startExpr.Expression as ConstantExpression;
-        if (constExpr == null)
-        {
-            return constExpr;
-        }
-
-        var constValue = ValueTuple.Create(startExpr.Member.GetValue(constExpr.Value), startExpr.Member.GetMemberType());
-        memberChains.Reverse();
-        var finalValue = memberChains
-            .Skip(1) // выше обработали самый первый (var startExpr = memberChains.Last();)
-            .Select(z => z.Member)
-            .Aggregate(
-                constValue,
-                (prevValue, memberInfo) => ValueTuple.Create(memberInfo.GetValue(prevValue.Item1), memberInfo.GetMemberType()));
-
-        if (finalValue.Item1 == null && finalValue.Item2.IsValueType)
-        {
-            return null;
-        }
-
-        return Expression.Constant(finalValue.Item1, finalValue.Item2);
     }
 
-    private static object? GetValue(this MemberInfo source, object? arg)
+    extension<TSource>(IEnumerable<TSource> source)
     {
-        return source switch
+        public Expression<Func<TResult, bool>> BuildAnd<TResult>(Func<TSource, Expression<Func<TResult, bool>>> selector)
         {
-            FieldInfo field => field.GetValue(arg),
-            PropertyInfo property => property.GetValue(arg),
-            _ => throw new ArgumentOutOfRangeException(nameof(source))
-        };
+            return source.Select(selector).BuildAnd();
+        }
+
+        public Expression<Func<TResult, bool>> BuildOr<TResult>(Func<TSource, Expression<Func<TResult, bool>>> selector)
+        {
+            return source.Select(selector).BuildOr();
+        }
     }
 
-    private static Type GetMemberType(this MemberInfo source)
+    extension<T>(Expression<Func<T, bool>> expr)
     {
-        return source switch
+        public Expression<Func<T, bool>> Not()
         {
-            FieldInfo field => field.FieldType,
-            PropertyInfo property => property.PropertyType,
-            _ => throw new ArgumentOutOfRangeException(nameof(source))
-        };
+            return
+                from v in expr
+                select !v;
+        }
+
+        public Expression<Func<IEnumerable<T>, bool>> ToEnumerableAny(string? paramName = null)
+        {
+            var param = Expression.Parameter(typeof(IEnumerable<T>), paramName);
+
+            var anyMethod = new Func<IEnumerable<T>, Func<T, bool>, bool>(Enumerable.Any).Method;
+
+            var callExpr = Expression.Call(null, anyMethod, param, expr);
+
+            return Expression.Lambda<Func<IEnumerable<T>, bool>>(callExpr, param);
+        }
+
+        public Expression<Func<IEnumerable<T>, IEnumerable<T>>> ToCollectionFilter(string? paramName = null)
+        {
+            var param = Expression.Parameter(typeof(IEnumerable<T>), paramName);
+
+            var whereMethod = new Func<IEnumerable<T>, Func<T, bool>, IEnumerable<T>>(Enumerable.Where).Method;
+
+            return Expression.Lambda<Func<IEnumerable<T>, IEnumerable<T>>>(Expression.Call(null, whereMethod, param, expr), param);
+        }
+
+        public Expression<Func<T, bool>> BuildAnd(Expression<Func<T, bool>> expr2)
+        {
+            return
+                from v1 in expr
+                from v2 in expr2
+                select v1 && v2;
+        }
+
+        public Expression<Func<T, bool>> BuildOr(Expression<Func<T, bool>> expr2)
+        {
+            return
+                from v1 in expr
+                from v2 in expr2
+                select v1 || v2;
+        }
+    }
+
+    extension<TDelegate>(Expression<TDelegate> expression)
+    {
+        public Expression<TDelegate> Optimize()
+        {
+            return expression.UpdateBody(OptimizeBooleanLogicVisitor.Value);
+        }
+
+        public Expression<TDelegate> ExpandConst()
+        {
+            return expression.UpdateBody(ExpandConstVisitor.Value);
+        }
+
+        public Expression<TDelegate> UpdateBody(ExpressionVisitor bodyVisitor)
+        {
+            return expression.Update(bodyVisitor.Visit(expression.Body), expression.Parameters);
+        }
+    }
+
+    extension(LambdaExpression expression)
+    {
+        public LambdaExpression UpdateBodyBase(ExpressionVisitor bodyVisitor)
+        {
+            return Expression.Lambda(bodyVisitor.Visit(expression.Body), expression.Parameters);
+        }
+
+        public Expression GetBodyWithOverrideParameters(params Expression[] newExpressions)
+        {
+            var pairs = expression.Parameters.ZipStrong(newExpressions, (parameter, newExpression) => new { Parameter = parameter, NewExpression = newExpression });
+
+            return pairs.Aggregate(expression.Body, (expr, pair) => expr.Override(pair.Parameter, pair.NewExpression));
+        }
+    }
+
+    /// <param name="baseExpression">expression to get value from</param>
+    extension(Expression baseExpression)
+    {
+        public Expression Override(Expression oldExpr, Expression newExpr)
+        {
+            return new OverrideExpressionVisitor(oldExpr, newExpr).Visit(baseExpression)!;
+        }
+
+        public Expression UpdateBase(IEnumerable<ExpressionVisitor> visitors)
+        {
+            return visitors.Aggregate(baseExpression, (expr, visitor) => visitor.Visit(expr));
+        }
+
+        public Expression UpdateBase(params ExpressionVisitor[] visitors)
+        {
+            return baseExpression.UpdateBase((IEnumerable<ExpressionVisitor>)visitors);
+        }
+
+        public Maybe<TValue?> GetDeepMemberConstValue<TValue>()
+        {
+            return GetDeepMemberConstValue(baseExpression).Where(v => v is TValue).Select(v => (TValue?)v);
+        }
+
+        public Maybe<object?> GetDeepMemberConstValue()
+        {
+            return baseExpression.GetDeepMemberConstExpression().Select(expr => expr.Value);
+        }
+
+        public Maybe<ConstantExpression> GetMemberConstExpression()
+        {
+            return (baseExpression as ConstantExpression).ToMaybe()
+
+                .Or(() =>
+
+                    from memberExpr in (baseExpression as MemberExpression).ToMaybe()
+
+                    from constExpr in (memberExpr.Expression as ConstantExpression).ToMaybe()
+
+                    from fieldInfo in (memberExpr.Member as FieldInfo).ToMaybe()
+
+                    select Expression.Constant(fieldInfo.GetValue(constExpr.Value), fieldInfo.FieldType));
+        }
+
+        /// <summary> Returns constant value from expression
+        /// </summary>
+        /// <typeparam name="TValue">cast value to specified Type if possible</typeparam>
+        /// <returns>constant value of specified Type</returns>
+        public Maybe<TValue?> GetMemberConstValue<TValue>()
+        {
+            return baseExpression.GetMemberConstValue().Where(v => v is TValue).Select(v => (TValue?)v);
+        }
+
+        public Maybe<object?> GetMemberConstValue()
+        {
+            return baseExpression.GetMemberConstExpression().Select(expr => expr.Value);
+        }
+
+        public Maybe<ConstantExpression> GetDeepMemberConstExpression()
+        {
+            var result = baseExpression.GetPureDeepMemberConstExpression();
+            if (result == null)
+            {
+                return Maybe<ConstantExpression>.Nothing;
+            }
+
+            return baseExpression is ConstantExpression constExpr ? constExpr.ToMaybe() : Maybe.Maybe.Return(result);
+        }
+
+        public ConstantExpression? GetPureDeepMemberConstExpression()
+        {
+            if (baseExpression is ConstantExpression constExpr)
+            {
+                return constExpr;
+            }
+
+            if (baseExpression is not MemberExpression memberExpr)
+            {
+                return null;
+            }
+
+            var memberChains = memberExpr.GetAllElements(z => z.Expression as MemberExpression).TakeWhile(x => x != null).ToList();
+
+            var startExpr = memberChains.Last();
+
+            constExpr = startExpr.Expression as ConstantExpression;
+            if (constExpr == null)
+            {
+                return constExpr;
+            }
+
+            var constValue = ValueTuple.Create(startExpr.Member.GetValue(constExpr.Value), startExpr.Member.GetMemberType());
+            memberChains.Reverse();
+            var finalValue = memberChains
+                .Skip(1) // выше обработали самый первый (var startExpr = memberChains.Last();)
+                .Select(z => z.Member)
+                .Aggregate(
+                    constValue,
+                    (prevValue, memberInfo) => ValueTuple.Create(memberInfo.GetValue(prevValue.Item1), memberInfo.GetMemberType()));
+
+            if (finalValue.Item1 == null && finalValue.Item2.IsValueType)
+            {
+                return null;
+            }
+
+            return Expression.Constant(finalValue.Item1, finalValue.Item2);
+        }
+
+        public Maybe<MemberInfo> GetMember()
+        {
+            return (baseExpression as UnaryExpression).ToMaybe().Where(unaryExpr => unaryExpr.NodeType == ExpressionType.Convert)
+                .SelectMany(unaryExpr => unaryExpr.Operand.GetMember())
+
+                .Or(() => (baseExpression as MethodCallExpression).ToMaybe().Select(callExpr => (MemberInfo)callExpr.Method))
+
+                .Or(() => (baseExpression as MemberExpression).ToMaybe().Select(memberExpr => memberExpr.Member));
+        }
+    }
+
+    extension(MemberInfo source)
+    {
+        private object? GetValue(object? arg)
+        {
+            return source switch
+            {
+                FieldInfo field => field.GetValue(arg),
+                PropertyInfo property => property.GetValue(arg),
+                _ => throw new ArgumentOutOfRangeException(nameof(source))
+            };
+        }
+
+        private Type GetMemberType()
+        {
+            return source switch
+            {
+                FieldInfo field => field.FieldType,
+                PropertyInfo property => property.PropertyType,
+                _ => throw new ArgumentOutOfRangeException(nameof(source))
+            };
+        }
     }
 
     internal static Func<object, object, object>? GetBinaryMethod(this ExpressionType type)

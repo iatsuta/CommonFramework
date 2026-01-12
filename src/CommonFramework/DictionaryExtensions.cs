@@ -4,72 +4,72 @@ namespace CommonFramework;
 
 public static class DictionaryExtensions
 {
-    public static Dictionary<TNewKey, TValue> ChangeKey<TOldKey, TNewKey, TValue>(this IReadOnlyDictionary<TOldKey, TValue> source, Func<TOldKey, TNewKey> selector)
-        where TNewKey : notnull
+    extension<TKey, TValue>(IDictionary<TKey, TValue> source)
     {
-        return source.ToDictionary(pair => selector(pair.Key), pair => pair.Value);
-    }
-
-    public static TValue GetValueOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> source, TKey key, object syncLocker, Func<TValue> getNewPairValue)
-    {
-        if (source.TryGetValue(key, out var value))
+        public TValue GetValueOrCreate(TKey key, Func<TValue> getNewValue)
         {
-            return value;
-        }
-
-        lock (syncLocker)
-        {
-            if (source.TryGetValue(key, out value))
+            if (source.TryGetValue(key, out var value))
             {
                 return value;
             }
 
-            value = getNewPairValue();
+            value = getNewValue();
 
             source.Add(key, value);
 
             return value;
         }
-    }
 
-    public static Dictionary<TKey, TValue> Concat<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source, IReadOnlyDictionary<TKey, TValue> other)
-        where TKey : notnull
-    {
-        return ((IEnumerable<KeyValuePair<TKey, TValue>>)source).Concat(other).ToDictionary();
-    }
-
-    public static TValue GetValueOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> source, TKey key, Func<TValue> getNewPairValue)
-    {
-        if (source.TryGetValue(key, out var value))
+        public async Task<TValue> GetValueOrCreateAsync(TKey key, Func<TKey, Task<TValue>> getNewValue)
         {
+            if (source.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            value = await getNewValue(key);
+
+            source.Add(key, value);
+
             return value;
         }
 
-        value = getNewPairValue();
-
-        source.Add(key, value);
-
-        return value;
+        public Task<TValue> GetValueOrCreateAsync(TKey key, Func<Task<TValue>> getNewValue) =>
+            source.GetValueOrCreateAsync(key, _ => getNewValue());
     }
 
-    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source, TKey key, Func<TValue> getDefaultValueFunc)
-    {
-        return source.TryGetValue(key, out var value) ? value : getDefaultValueFunc();
-    }
-
-    public static TValue GetValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source, TKey key, Func<Exception> getKeyNotFoundError)
-    {
-        return source.GetValueOrDefault(key, () => throw getKeyNotFoundError());
-    }
-
-    public static Maybe<TValue> GetMaybeValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> source, TKey key)
-    {
-        return source.TryGetValue(key, out var value) ? new Just<TValue>(value) : Maybe<TValue>.Nothing;
-    }
-
-    public static Dictionary<TKey, TNewValue> ChangeValue<TKey, TOldValue, TNewValue>(this IReadOnlyDictionary<TKey, TOldValue> source, Func<TOldValue, TNewValue> selector)
+    extension<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> source)
         where TKey : notnull
     {
-        return source.ToDictionary(pair => pair.Key, pair => selector(pair.Value));
+        public TValue GetValueOrDefault(TKey key, Func<TValue> getDefaultValueFunc)
+        {
+            return source.TryGetValue(key, out var value) ? value : getDefaultValueFunc();
+        }
+
+        public TValue GetValue(TKey key, Func<Exception> getKeyNotFoundError)
+        {
+            return source.GetValueOrDefault(key, () => throw getKeyNotFoundError());
+        }
+
+        public Maybe<TValue> GetMaybeValue(TKey key)
+        {
+            return source.TryGetValue(key, out var value) ? new Just<TValue>(value) : Maybe<TValue>.Nothing;
+        }
+
+        public Dictionary<TKey, TValue> Concat(IReadOnlyDictionary<TKey, TValue> other)
+        {
+            return ((IEnumerable<KeyValuePair<TKey, TValue>>)source).Concat(other).ToDictionary();
+        }
+
+        public Dictionary<TNewKey, TValue> ChangeKey<TNewKey>(Func<TKey, TNewKey> selector)
+            where TNewKey : notnull
+        {
+            return source.ToDictionary(pair => selector(pair.Key), pair => pair.Value);
+        }
+
+        public Dictionary<TKey, TNewValue> ChangeValue<TNewValue>(Func<TValue, TNewValue> selector)
+        {
+            return source.ToDictionary(pair => pair.Key, pair => selector(pair.Value));
+        }
     }
 }
