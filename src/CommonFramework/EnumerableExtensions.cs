@@ -1,4 +1,5 @@
 ﻿using CommonFramework.Maybe;
+
 using System.Collections.ObjectModel;
 
 namespace CommonFramework;
