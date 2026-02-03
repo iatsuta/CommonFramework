@@ -9,9 +9,6 @@ public static class ServiceCollectionExtensions
     {
         public IServiceCollection AddServiceProxyFactory(Action<IServiceProxyBuilder>? setup = null)
         {
-            services.TryAddTransient<IServiceProxyFactory, ServiceProxyFactory>();
-            services.TryAddSingleton<IServiceProxyTypeRedirector, ServiceProxyTypeRedirector>();
-
             var serviceProxyBuilder = new ServiceProxyBuilder();
 
             setup?.Invoke(serviceProxyBuilder);
@@ -20,6 +17,18 @@ public static class ServiceCollectionExtensions
 
             return services;
         }
+
+        public bool AlreadyInitialized<TService>(ServiceLifetime lifetime = ServiceLifetime.Singleton, bool isKeyed = false) =>
+
+            services.Any(sd => sd.IsKeyedService == isKeyed && sd.Lifetime == lifetime && sd.ServiceType == typeof(TService));
+
+        public bool AlreadyInitialized<TService, TImplementation>(ServiceLifetime lifetime = ServiceLifetime.Singleton, bool isKeyed = false)
+
+            where TImplementation : TService =>
+
+            services.Any(sd =>
+                sd.IsKeyedService == isKeyed && sd.Lifetime == lifetime && sd.ServiceType == typeof(TService) &&
+                sd.ImplementationType == typeof(TImplementation));
     }
 
     extension(IServiceCollection services)

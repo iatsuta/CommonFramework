@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CommonFramework.DependencyInjection;
 
@@ -15,6 +16,9 @@ public class ServiceProxyBuilder : IServiceProxyBuilder
 
     public void Initialize(IServiceCollection services)
     {
+        services.TryAddTransient<IServiceProxyFactory, ServiceProxyFactory>();
+        services.TryAddSingleton<IServiceProxyTypeRedirector, ServiceProxyTypeRedirector>();
+
         foreach (var redirectInfo in this.redirects)
         {
             services.AddSingleton(redirectInfo);
