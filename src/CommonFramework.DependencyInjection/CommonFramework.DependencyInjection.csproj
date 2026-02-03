@@ -8,4 +8,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CommonFramework.DependencyInjection.Abstractions\CommonFramework.DependencyInjection.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

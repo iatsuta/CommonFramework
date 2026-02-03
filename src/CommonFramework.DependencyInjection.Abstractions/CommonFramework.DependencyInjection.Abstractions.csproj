@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>IvAt.CommonFramework.DependencyInjection.Abstractions</PackageId>
+    <RootNamespace>CommonFramework.DependencyInjection</RootNamespace>
+  </PropertyGroup>
+
+</Project>
