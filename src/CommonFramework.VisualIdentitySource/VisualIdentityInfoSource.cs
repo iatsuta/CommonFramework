@@ -1,39 +1,13 @@
-﻿using System.Linq.Expressions;
-
-using CommonFramework.DictionaryCache;
+﻿using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace CommonFramework.VisualIdentitySource;
 
 public class VisualIdentityInfoSource(IVisualIdentityPropertyExtractor propertyExtractor, IEnumerable<VisualIdentityInfo> customInfoList)
 	: IVisualIdentityInfoSource
 {
-	private readonly IDictionaryCache<Type, VisualIdentityInfo?> cache = new DictionaryCache<Type, VisualIdentityInfo?>(domainType =>
-	{
-		var customInfo = customInfoList.SingleOrDefault(identityInfo => identityInfo.DomainObjectType == domainType);
+    private readonly ConcurrentDictionary<Type, VisualIdentityInfo?> cache = [];
 
-		if (customInfo != null)
-		{
-			return customInfo;
-		}
-		else
-		{
-			var nameProperty = propertyExtractor.TryExtract(domainType);
-
-			if (nameProperty == null)
-			{
-				return null;
-			}
-			else
-			{
-				var idPath = nameProperty.ToGetLambdaExpression();
-
-				return new Func<Expression<Func<object, string>>, VisualIdentityInfo<object>>(CreateVisualIdentityInfo)
-					.CreateGenericMethod(domainType)
-					.Invoke<VisualIdentityInfo>(null, idPath);
-			}
-		}
-
-	}).WithLock();
     public VisualIdentityInfo<TDomainObject>? TryGetVisualIdentityInfo<TDomainObject>()
     {
         return (VisualIdentityInfo<TDomainObject>?)this.TryGetVisualIdentityInfo(typeof(TDomainObject));
@@ -41,20 +15,45 @@ public class VisualIdentityInfoSource(IVisualIdentityPropertyExtractor propertyE
 
     public VisualIdentityInfo GetVisualIdentityInfo(Type domainObjectType)
     {
-        return this.TryGetVisualIdentityInfo(domainObjectType) ?? throw this.GetMissedError(domainObjectType);
+        return this.TryGetVisualIdentityInfo(domainObjectType) ?? throw GetMissedError(domainObjectType);
     }
 
     public VisualIdentityInfo? TryGetVisualIdentityInfo(Type domainObjectType)
     {
-        return this.cache[domainObjectType];
+        return this.cache.GetOrAdd(domainObjectType, _ =>
+        {
+            var customInfo = customInfoList.SingleOrDefault(identityInfo => identityInfo.DomainObjectType == domainObjectType);
+
+            if (customInfo != null)
+            {
+                return customInfo;
+            }
+            else
+            {
+                var nameProperty = propertyExtractor.TryExtract(domainObjectType);
+
+                if (nameProperty == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    var idPath = nameProperty.ToGetLambdaExpression();
+
+                    return new Func<Expression<Func<object, string>>, VisualIdentityInfo<object>>(CreateVisualIdentityInfo)
+                        .CreateGenericMethod(domainObjectType)
+                        .Invoke<VisualIdentityInfo>(null, idPath);
+                }
+            }
+        });
     }
 
     public VisualIdentityInfo<TDomainObject> GetVisualIdentityInfo<TDomainObject>()
 	{
-		return this.TryGetVisualIdentityInfo<TDomainObject>() ?? throw this.GetMissedError(typeof(TDomainObject));
+		return this.TryGetVisualIdentityInfo<TDomainObject>() ?? throw GetMissedError(typeof(TDomainObject));
 	}
 
-    private Exception GetMissedError(Type domainObjectType)
+    private static Exception GetMissedError(Type domainObjectType)
     {
         return new Exception($"{nameof(VisualIdentityInfo)} for {domainObjectType.Name} not found");
     }
