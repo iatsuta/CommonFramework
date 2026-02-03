@@ -1,4 +1,4 @@
-﻿namespace CommonFramework.DependencyInjection;
+﻿namespace CommonFramework;
 
 public interface IServiceProxyFactory
 {
