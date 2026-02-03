@@ -11,13 +11,14 @@
     <File Path="Directory.Packages.props" />
     <File Path="__SolutionItems/CommonAssemblyInfo.cs" />
   </Folder>
-  <Project Path="CommonFramework.DependencyInjection.Abstractions/CommonFramework.DependencyInjection.Abstractions.csproj" />
   <Project Path="CommonFramework.DependencyInjection/CommonFramework.DependencyInjection.csproj" />
   <Project Path="CommonFramework.GenericRepository/CommonFramework.GenericRepository.csproj" />
   <Project Path="CommonFramework.IdentitySource.Abstractions/CommonFramework.IdentitySource.Abstractions.csproj" />
+  <Project Path="CommonFramework.IdentitySource.Runtime/CommonFramework.IdentitySource.Runtime.csproj" />
   <Project Path="CommonFramework.IdentitySource/CommonFramework.IdentitySource.csproj" />
   <Project Path="CommonFramework.RelativePath/CommonFramework.RelativePath.csproj" />
   <Project Path="CommonFramework.VisualIdentitySource.Abstractions/CommonFramework.VisualIdentitySource.Abstractions.csproj" />
+  <Project Path="CommonFramework.VisualIdentitySource.Runtime/CommonFramework.VisualIdentitySource.Runtime.csproj" />
   <Project Path="CommonFramework.VisualIdentitySource/CommonFramework.VisualIdentitySource.csproj" />
 
   <Project Path="CommonFramework/CommonFramework.csproj" />

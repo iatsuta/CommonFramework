@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CommonFramework.DependencyInjection.Abstractions\CommonFramework.DependencyInjection.Abstractions.csproj" />
+    <ProjectReference Include="..\CommonFramework\CommonFramework.csproj" />
   </ItemGroup>
 
 </Project>

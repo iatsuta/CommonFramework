@@ -7,7 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CommonFramework.DependencyInjection\CommonFramework.DependencyInjection.csproj" />
 
-    <ProjectReference Include="..\CommonFramework.IdentitySource.Abstractions\CommonFramework.IdentitySource.Abstractions.csproj" />
+    <ProjectReference Include="..\CommonFramework.IdentitySource.Runtime\CommonFramework.IdentitySource.Runtime.csproj" />
   </ItemGroup>
 
 </Project>
