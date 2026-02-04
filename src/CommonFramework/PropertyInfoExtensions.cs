@@ -62,7 +62,13 @@ public static class PropertyInfoExtensions
                 var sourceParameter = Expression.Parameter(propertySource);
                 var valueParameter = Expression.Parameter(property.PropertyType);
 
-                return Expression.Lambda(Expression.Call(sourceParameter, property.GetSetMethod() ?? property.GetSetMethod(true)!, valueParameter), sourceParameter,
+                return Expression.Lambda(
+                    Expression.Call(sourceParameter,
+                        property.GetSetMethod()
+                        ?? property.GetSetMethod(true)
+                        ?? throw new InvalidOperationException(
+                            $"Setter method for property '{property.Name}' on type '{propertySource}' was not found."), valueParameter),
+                    sourceParameter,
                     valueParameter);
             }).WithLock();
     }
