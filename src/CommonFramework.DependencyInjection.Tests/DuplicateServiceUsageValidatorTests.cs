@@ -7,17 +7,20 @@ public class DuplicateServiceUsageValidatorTests
     [Fact]
     public void Validate_ShouldThrow_WhenMultipleServicesUsedAsSingleInstanceDependency()
     {
+        // arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton<IService, ServiceImpl>();
-        services.AddSingleton<IService, ServiceImpl>();
+        services.AddSingleton<IInnerService, InnerService>();
+        services.AddSingleton<IInnerService, InnerService>();
 
         services.AddSingleton<Consumer>();
 
         services.AddValidator<DuplicateServiceUsageValidator>();
 
+        // act
         Action act = () => services.Validate();
 
+        // assert
         act.Should().Throw<InvalidOperationException>()
             .Where(ex => ex.Message.Contains("has been registered many times"));
     }
@@ -25,42 +28,94 @@ public class DuplicateServiceUsageValidatorTests
     [Fact]
     public void Validate_ShouldNotThrow_WhenServiceUsedAsCollectionDependency()
     {
+        // arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton<IService, ServiceImpl>();
-        services.AddSingleton<IService, ServiceImpl>();
+        services.AddSingleton<IInnerService, InnerService>();
+        services.AddSingleton<IInnerService, InnerService>();
 
         services.AddSingleton<ConsumerWithCollection>();
 
         services.AddValidator<DuplicateServiceUsageValidator>();
 
+        // act
         Action act = () => services.Validate();
 
+        // assert
         act.Should().NotThrow();
     }
 
     [Fact]
     public void Validate_ShouldNotThrow_WhenDuplicateServiceIsExcludedByValidator()
     {
+        // arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton<IService, ServiceImpl>();
-        services.AddSingleton<IService, ServiceImpl>();
+        services.AddSingleton<IInnerService, InnerService>();
+        services.AddSingleton<IInnerService, InnerService>();
 
         services.AddSingleton<Consumer>();
 
-        services.AddValidator(new DuplicateServiceUsageValidator([typeof(IService)]));
+        services.AddValidator(new DuplicateServiceUsageValidator([typeof(IInnerService)]));
 
+        // act
         Action act = () => services.Validate();
 
+        // assert
         act.Should().NotThrow();
     }
 
-    private interface IService;
 
-    private class ServiceImpl : IService;
+    [Fact]
+    public void Validate_ShouldThrow_WhenKeyedServiceUsedMultipleTimes()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-    private class Consumer(IService service);
+        services.AddKeyedSingleton<IInnerService, InnerService>("Root");
+        services.AddKeyedSingleton<IInnerService, InnerService>("Root");
 
-    private class ConsumerWithCollection(IEnumerable<IService> services);
+        services.AddSingleton<KeyedConsumer>();
+
+        services.AddValidator<DuplicateServiceUsageValidator>();
+
+        // act
+        Action act = () => services.Validate();
+
+        // assert
+        act.Should().Throw<InvalidOperationException>()
+            .Where(ex => ex.Message.Contains("has been registered many times"));
+    }
+
+    [Fact]
+    public void Validate_ShouldNotThrow_WhenKeyedServiceUsedOnce()
+    {
+        // arrange
+        var services = new ServiceCollection();
+
+        services.AddKeyedSingleton<IInnerService, InnerService>("Root");
+        services.AddKeyedSingleton<IInnerService, InnerService>("Root");
+
+        services.AddSingleton<KeyedConsumerCollection>();
+
+        services.AddValidator<DuplicateServiceUsageValidator>();
+
+        // act
+        Action act = () => services.Validate();
+
+        // assert
+        act.Should().NotThrow();
+    }
+
+    private interface IInnerService;
+
+    private class InnerService : IInnerService;
+
+    private class Consumer(IInnerService service);
+
+    private class ConsumerWithCollection(IEnumerable<IInnerService> services);
+
+    private class KeyedConsumer([FromKeyedServices("Root")] IInnerService service);
+
+    private class KeyedConsumerCollection([FromKeyedServices("Root")]IEnumerable<IInnerService> services);
 }

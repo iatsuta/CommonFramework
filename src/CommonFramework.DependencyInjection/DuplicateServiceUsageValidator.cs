@@ -24,7 +24,7 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
 
         var errors = filteredWrongMultiUsage.Select(pair =>
         {
-            var keyedParts = pair.IsKeyedService ? $" (ServiceKey: {pair.ServiceKey})" : null;
+            var keyedParts = pair.ActualServiceKey == null ? null : $" (ServiceKey: {pair.ActualServiceKey.Item1})";
 
             return $"The service {pair.ServiceType}{keyedParts} has been registered many times. There are services that use it in the constructor in a single instance: "
                    + string.Join(", ", pair.UsedFor.Select(usedService => usedService.ImplementationType));
@@ -33,7 +33,7 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
         return new ValidationResult(errors);
     }
 
-    private static List<(Type ServiceType, bool IsKeyedService, object ServiceKey, List<ServiceDescriptor> UsedFor)> GetWrongMultiUsage(IServiceCollection serviceCollection)
+    private static List<(Type ServiceType, Tuple<object?>? ActualServiceKey, List<ServiceDescriptor> UsedFor)> GetWrongMultiUsage(IServiceCollection serviceCollection)
     {
         var usedParametersRequest =
 
@@ -42,8 +42,6 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
             let actualImplementationType = service.IsKeyedService ? service.KeyedImplementationType : service.ImplementationType
 
             let actualImplementationFactory = service.IsKeyedService ? (object?)service.KeyedImplementationFactory : service.ImplementationFactory
-
-            let serviceKey = service.IsKeyedService ? service.ServiceKey : null
 
             where actualImplementationType != null && actualImplementationFactory == null
 
@@ -58,9 +56,15 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
 
             where actualCtor != null
 
-            from parameterType in actualCtor.GetParameters().Select(p => p.ParameterType).Distinct()
+            from parameter in actualCtor.GetParameters()
 
-            group service by (parameterType, service.IsKeyedService, serviceKey);
+            let parameterType = parameter.ParameterType
+
+            let parameterKey = parameter.GetCustomAttribute<FromKeyedServicesAttribute>()
+
+            let actualParameterKey = parameterKey == null ? null : Tuple.Create(parameterKey.Key)
+
+            group service by (parameterType, actualParameterKey);
 
         var usedParametersDict = usedParametersRequest.ToDictionary(g => g.Key, g => g.ToList());
 
@@ -70,9 +74,9 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
 
             from service in serviceCollection
 
-            let serviceKey = service.IsKeyedService ? service.ServiceKey : null
+            let actualServiceKey = service.IsKeyedService ? Tuple.Create(service.ServiceKey) : null
 
-            group service by (service.ServiceType, service.IsKeyedService, serviceKey) into serviceTypeGroup
+            group service by (service.ServiceType, actualServiceKey) into serviceTypeGroup
 
             where serviceTypeGroup.Count() > 1
 
@@ -80,7 +84,7 @@ public class DuplicateServiceUsageValidator(Type[] exceptServices) : IServiceCol
 
             where servicesWithSimpleUsage != null
 
-            select (serviceTypeGroup.Key.ServiceType, serviceTypeGroup.Key.IsKeyedService, serviceTypeGroup.Key.serviceKey, servicesWithSimpleUsage);
+            select (serviceTypeGroup.Key.ServiceType, serviceTypeGroup.Key.actualServiceKey, servicesWithSimpleUsage);
 
         return wrongMultiUsageRequest.ToList();
     }
