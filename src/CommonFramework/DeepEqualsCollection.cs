@@ -1,34 +1,62 @@
-﻿namespace CommonFramework;
+﻿using System.Collections.Immutable;
 
-public class DeepEqualsCollection<T>(IReadOnlyList<T> baseSource, IEqualityComparer<T> comparer)
+namespace CommonFramework;
+
+public class DeepEqualsCollection<T>(ImmutableArray<T> baseSource, IEqualityComparer<T> comparer)
     : IReadOnlyList<T>, IEquatable<DeepEqualsCollection<T>>
 {
+    private int? hashCode;
+
     public DeepEqualsCollection(IEnumerable<T> baseSource, IEqualityComparer<T>? comparer = null)
-        : this(baseSource.ToList(), comparer ?? EqualityComparer<T>.Default)
+        : this([..baseSource], comparer ?? EqualityComparer<T>.Default)
     {
     }
 
-    public int Count => baseSource.Count;
+    public int Count => baseSource.Length;
 
     public T this[int index] => baseSource[index];
 
-    public IEnumerator<T> GetEnumerator() => baseSource.GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)baseSource).GetEnumerator();
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 
-    public bool Equals(DeepEqualsCollection<T>? other) => !ReferenceEquals(other, null) && baseSource.SequenceEqual(other, comparer);
+    public bool Equals(DeepEqualsCollection<T>? other) =>
 
-    public override bool Equals(object? obj)
+        object.ReferenceEquals(this, other)
+
+        || (other is not null && baseSource.SequenceEqual(other, comparer));
+
+    public override bool Equals(object? obj) => this.Equals(obj as DeepEqualsCollection<T>);
+
+    public override int GetHashCode()
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-
-        return this.Equals(obj as DeepEqualsCollection<T>);
+        return this.hashCode ??= this.ComputeHashCode();
     }
 
-    public override int GetHashCode() => baseSource.Count;
+    private int ComputeHashCode()
+    {
+        var hash = new HashCode();
 
-    public static implicit operator DeepEqualsCollection<T>(T[] source) => DeepEqualsCollection.Create(source);
+        hash.Add(baseSource.Length);
+
+        foreach (var expr in baseSource)
+            hash.Add(expr, comparer);
+
+        return hash.ToHashCode();
+    }
+
+    public static bool operator ==(DeepEqualsCollection<T>? col1, DeepEqualsCollection<T>? col2)
+    {
+        return object.Equals(col1, col2);
+    }
+
+    public static bool operator !=(DeepEqualsCollection<T>? col1, DeepEqualsCollection<T>? col2)
+    {
+        return !(col1 == col2);
+    }
+
+
+    public static implicit operator DeepEqualsCollection<T>(T[] source) => new (source);
 }
 
 public static class DeepEqualsCollection
