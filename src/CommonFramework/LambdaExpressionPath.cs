@@ -1,12 +1,17 @@
-﻿using System.Collections.Immutable;
-using System.Linq.Expressions;
+﻿using CommonFramework.ExpressionComparers;
 
-using CommonFramework.ExpressionComparers;
+using System.Collections.Immutable;
+using System.Linq.Expressions;
 
 namespace CommonFramework;
 
 public sealed record LambdaExpressionPath(ImmutableArray<LambdaExpression> Properties)
 {
+    public LambdaExpressionPath(IEnumerable<LambdaExpression> properties)
+        : this([..properties])
+    {
+    }
+
     private static readonly IEqualityComparer<LambdaExpression> Comparer = ExpressionComparer.Default;
 
     private int? hashCode;
