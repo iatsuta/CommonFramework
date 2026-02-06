@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace CommonFramework;
 
@@ -37,5 +38,19 @@ public sealed record LambdaExpressionPath(ImmutableArray<LambdaExpression> Prope
             hash.Add(expr, Comparer);
 
         return hash.ToHashCode();
+    }
+
+    public static LambdaExpressionPath Create(Type sourceType, string[] properties)
+    {
+        var typedProperties = properties.Scan(
+            default(PropertyInfo),
+            (prevProperty, propertyName) =>
+            {
+                var currentType = prevProperty == null ? sourceType : prevProperty.PropertyType.GetCollectionElementTypeOrSelf();
+
+                return currentType.GetRequiredProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+            }).Skip(1).Select(v => v!);
+
+        return new LambdaExpressionPath(typedProperties.Select(v => v.ToGetLambdaExpression()));
     }
 }

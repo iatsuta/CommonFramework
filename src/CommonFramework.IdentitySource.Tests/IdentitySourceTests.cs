@@ -53,11 +53,11 @@ public class IdentitySourceTests
 
 	public class TestObject1
 	{
-		public int Id { get; set; }
+		public required int Id { get; set; }
 	}
 
 	public class TestObject2
 	{
-		public Guid MyId { get; set; }
+		public required Guid MyId { get; set; }
 	}
 }

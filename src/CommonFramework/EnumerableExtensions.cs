@@ -6,6 +6,16 @@ namespace CommonFramework;
 
 public static class EnumerableExtensions
 {
+    public static IEnumerable<TState> Scan<TSource, TState>(this IEnumerable<TSource> source, TState state, Func<TState, TSource, TState> selector)
+    {
+        yield return state;
+
+        foreach (var item in source)
+        {
+            yield return state = selector(state, item);
+        }
+    }
+
     public static IEnumerable<T> SelectMany<T>(this IEnumerable<IEnumerable<T>> source)
     {
         return source.SelectMany(v => v);

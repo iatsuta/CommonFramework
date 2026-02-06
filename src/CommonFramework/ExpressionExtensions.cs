@@ -28,17 +28,6 @@ public static class ExpressionExtensions
 			return path.GetProperty().ToSetLambdaExpression<TSource, TProperty>();
 		}
 
-		public PropertyInfo GetProperty()
-		{
-			var request = from member in path.Body.GetMember()
-
-				from property in (member as PropertyInfo).ToMaybe()
-
-				select property;
-
-			return request.GetValue(() => new ArgumentException("not property expression", nameof(path)));
-        }
-
         public Expression<Func<TNextSource, TProperty>> OverrideInput<TNextSource>(Expression<Func<TNextSource, TSource>> expr1)
         {
             return Expression.Lambda<Func<TNextSource, TProperty>>(path.Body.Override(path.Parameters.Single(), expr1.Body), expr1.Parameters);
@@ -175,6 +164,19 @@ public static class ExpressionExtensions
 
     extension(LambdaExpression expression)
     {
+        public PropertyInfo GetProperty()
+        {
+            var request =
+
+                from member in expression.Body.GetMember()
+
+                from property in (member as PropertyInfo).ToMaybe()
+
+                select property;
+
+            return request.GetValue(() => new ArgumentException("not property expression", nameof(expression)));
+        }
+
         public LambdaExpression UpdateBodyBase(ExpressionVisitor bodyVisitor)
         {
             return Expression.Lambda(bodyVisitor.Visit(expression.Body), expression.Parameters);

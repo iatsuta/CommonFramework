@@ -53,11 +53,11 @@ public class VisualIdentitySourceTests
 
 	public class TestObject1
 	{
-		public string Name { get; set; }
+		public required string Name { get; set; }
 	}
 
 	public class TestObject2
 	{
-		public string MyName { get; set; }
+		public required string MyName { get; set; }
 	}
 }
