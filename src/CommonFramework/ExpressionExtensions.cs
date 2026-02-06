@@ -28,6 +28,13 @@ public static class ExpressionExtensions
 			return path.GetProperty().ToSetLambdaExpression<TSource, TProperty>();
 		}
 
+        public Action<TSource, TProperty> ToLazySetAction()
+        {
+            Lazy<Action<TSource, TProperty>> lazySet = new(() => path.GetProperty().GetSetValueAction<TSource, TProperty>());
+
+            return (source, value) => lazySet.Value(source, value);
+        }
+
         public Expression<Func<TNextSource, TProperty>> OverrideInput<TNextSource>(Expression<Func<TNextSource, TSource>> expr1)
         {
             return Expression.Lambda<Func<TNextSource, TProperty>>(path.Body.Override(path.Parameters.Single(), expr1.Body), expr1.Parameters);

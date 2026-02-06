@@ -11,7 +11,7 @@ public record PropertyAccessors<TSource, TProperty>(
 {
     public PropertyAccessors(
         Expression<Func<TSource, TProperty>> path)
-        : this(path, path.Compile(), path.ToSetLambdaExpression().Compile())
+        : this(path, path.Compile(), path.ToLazySetAction())
     {
     }
 
