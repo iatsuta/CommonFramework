@@ -6,6 +6,6 @@ public class IdentityPropertyExtractor(IdentityPropertySourceSettings settings) 
 {
 	public PropertyInfo Extract(Type domainType)
 	{
-		return domainType.GetProperty(settings.PropertyName) ?? throw new Exception($"{settings.PropertyName} property in {domainType.Name} not found");
+		return domainType.GetRequiredProperty(settings.PropertyName, BindingFlags.Public | BindingFlags.Instance);
 	}
 }

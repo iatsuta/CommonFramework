@@ -10,7 +10,7 @@ public class VisualIdentityPropertyExtractor(VisualIdentityPropertySourceSetting
 
 			from propertyName in settings.PropertyNameList
 
-			let property = domainType.GetProperty(propertyName)
+			let property = domainType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)
 
 			where property != null && property.PropertyType == typeof(string)
 
