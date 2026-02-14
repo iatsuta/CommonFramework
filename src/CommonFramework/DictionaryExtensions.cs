@@ -1,9 +1,15 @@
-﻿using CommonFramework.Maybe;
+﻿using System.Collections.Immutable;
+
+using CommonFramework.Maybe;
 
 namespace CommonFramework;
 
 public static class DictionaryExtensions
 {
+    public static ImmutableDictionary<TKey, TValue> ToImmutableDictionary<TKey, TValue>(
+        this IEnumerable<(TKey Key, TValue Value)> source)
+        where TKey : notnull => source.ToImmutableDictionary(pair => pair.Key, pair => pair.Value);
+
     extension<TKey, TValue>(IDictionary<TKey, TValue> source)
     {
         public TValue GetValueOrCreate(TKey key, Func<TValue> getNewValue)
