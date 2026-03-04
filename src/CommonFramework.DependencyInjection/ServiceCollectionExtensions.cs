@@ -7,16 +7,8 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddServiceProxyFactory(Action<IServiceProxyBuilder>? setup = null)
-        {
-            var serviceProxyBuilder = new ServiceProxyBuilder();
-
-            setup?.Invoke(serviceProxyBuilder);
-
-            serviceProxyBuilder.Initialize(services);
-
-            return services;
-        }
+        public IServiceCollection AddServiceProxyFactory(Action<IServiceProxyBuilder>? setup = null) =>
+            services.Initialize<ServiceProxyBuilder>();
 
         public bool AlreadyInitialized<TService>(ServiceLifetime lifetime = ServiceLifetime.Singleton, bool isKeyed = false) =>
 
@@ -29,6 +21,18 @@ public static class ServiceCollectionExtensions
             services.Any(sd =>
                 sd.IsKeyedService == isKeyed && sd.Lifetime == lifetime && sd.ServiceType == typeof(TService) &&
                 sd.ImplementationType == typeof(TImplementation));
+
+        public IServiceCollection Initialize<TBuilder>(Action<TBuilder>? setup = null)
+            where TBuilder : IServiceCollectionBuilder, new()
+        {
+            var builder = new TBuilder();
+
+            setup?.Invoke(builder);
+
+            builder.Initialize(services);
+
+            return services;
+        }
     }
 
     extension(IServiceCollection services)

@@ -6,20 +6,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.VisualIdentitySource.DependencyInjection;
 
-public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
+public class VisualIdentitySourceBuilder : IVisualIdentitySourceBuilder, IServiceCollectionBuilder
 {
     private VisualIdentityPropertySourceSettings? customSettings;
 
-    private readonly List<Action<IServiceCollection>> actions = new();
+    private readonly List<Action<IServiceCollection>> actions = [];
 
-    public IVisualIdentitySourceSettings SetSettings(VisualIdentityPropertySourceSettings settings)
+    public IVisualIdentitySourceBuilder SetSettings(VisualIdentityPropertySourceSettings settings)
     {
         this.customSettings = settings;
 
         return this;
     }
 
-    public IVisualIdentitySourceSettings SetName<TDomainObject>(Expression<Func<TDomainObject, string>> namePath)
+    public IVisualIdentitySourceBuilder SetName<TDomainObject>(Expression<Func<TDomainObject, string>> namePath)
     {
         var visualIdentityInfo = new VisualIdentityInfo<TDomainObject>(namePath);
 
@@ -28,7 +28,7 @@ public class VisualIdentitySourceSettings : IVisualIdentitySourceSettings
         return this;
     }
 
-    public IVisualIdentitySourceSettings SetDisplay<TDomainObject>(Func<TDomainObject, string> displayFunc)
+    public IVisualIdentitySourceBuilder SetDisplay<TDomainObject>(Func<TDomainObject, string> displayFunc)
         where TDomainObject : class
     {
         var displayObjectInfo = new DisplayObjectInfo<TDomainObject>(displayFunc);

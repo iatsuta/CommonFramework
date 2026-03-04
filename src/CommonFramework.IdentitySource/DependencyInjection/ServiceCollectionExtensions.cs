@@ -1,17 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommonFramework.DependencyInjection;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.IdentitySource.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddIdentitySource(this IServiceCollection services, Action<IIdentitySourceSettings>? setup = null)
-    {
-	    var settings = new IdentitySourceSettings();
-
-        setup?.Invoke(settings);
-
-		settings.Initialize(services);
-
-		return services;
-    }
+    public static IServiceCollection AddIdentitySource(this IServiceCollection services, Action<IIdentitySourceBuilder>? setup = null) =>
+        services.Initialize<IdentitySourceBuilder>(setup);
 }

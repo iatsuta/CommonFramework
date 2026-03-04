@@ -6,20 +6,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.IdentitySource.DependencyInjection;
 
-public class IdentitySourceSettings : IIdentitySourceSettings
+public class IdentitySourceBuilder : IIdentitySourceBuilder, IServiceCollectionBuilder
 {
     private IdentityPropertySourceSettings? customSettings;
 
-    private readonly List<Action<IServiceCollection>> actions = new();
+    private readonly List<Action<IServiceCollection>> actions = [];
 
-    public IIdentitySourceSettings SetSettings(IdentityPropertySourceSettings settings)
+    public IIdentitySourceBuilder SetSettings(IdentityPropertySourceSettings settings)
     {
         this.customSettings = settings;
 
         return this;
     }
 
-    public IIdentitySourceSettings SetId<TDomainObject, TIdent>(Expression<Func<TDomainObject, TIdent>> idPath)
+    public IIdentitySourceBuilder SetId<TDomainObject, TIdent>(Expression<Func<TDomainObject, TIdent>> idPath)
         where TIdent : notnull
     {
         var identityInfo = new IdentityInfo<TDomainObject, TIdent>(idPath);
