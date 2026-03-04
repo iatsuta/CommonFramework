@@ -1,17 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommonFramework.DependencyInjection;
+
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.VisualIdentitySource.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddVisualIdentitySource(this IServiceCollection services, Action<IVisualIdentitySourceSettings>? setup = null)
-    {
-	    var settings = new VisualIdentitySourceSettings();
-
-        setup?.Invoke(settings);
-
-		settings.Initialize(services);
-
-		return services;
-    }
+    public static IServiceCollection AddVisualIdentitySource(this IServiceCollection services, Action<IVisualIdentitySourceBuilder>? setup = null) =>
+        services.Initialize<VisualIdentitySourceBuilder>(setup);
 }

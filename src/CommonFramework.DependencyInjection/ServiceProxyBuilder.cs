@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CommonFramework.DependencyInjection;
 
-public class ServiceProxyBuilder : IServiceProxyBuilder
+public class ServiceProxyBuilder : IServiceProxyBuilder, IServiceCollectionBuilder
 {
     private readonly List<ServiceProxyTypeRedirectInfo> redirects = new();
 
