@@ -7,9 +7,27 @@ namespace CommonFramework.VisualIdentitySource.Tests;
 public class DomainObjectDisplayServiceTests
 {
     [Fact]
+    public void DomainObjectDisplayService_ToString_ReturnsPropertyName_ByDefault()
+    {
+        // Arrange
+        var sp = new ServiceCollection()
+            .AddVisualIdentitySource()
+            .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+
+        var service = sp.GetRequiredService<IDomainObjectDisplayService>();
+        var testObject = new TestObject1 { Name = nameof(DomainObjectDisplayService_ToString_ReturnsPropertyName_ByDefault) };
+
+        // Act
+        var result = service.ToString(testObject);
+
+        // Assert
+        result.Should().Be(testObject.Name);
+    }
+
+    [Fact]
     public void DomainObjectDisplayService_ToString_ReturnsConfiguredPropertyName()
     {
-        //Arrange
+        // Arrange
         var nameLambda = ExpressionHelper.Create((TestObject2 v) => v.MyName);
 
         var sp = new ServiceCollection()
@@ -17,33 +35,35 @@ public class DomainObjectDisplayServiceTests
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
         var service = sp.GetRequiredService<IDomainObjectDisplayService>();
-
         var testObject = new TestObject2 { MyName = nameof(DomainObjectDisplayService_ToString_ReturnsConfiguredPropertyName) };
 
-        //Act
+        // Act
         var result = service.ToString(testObject);
 
-        //Assert
+        // Assert
         result.Should().Be(testObject.MyName);
     }
 
     [Fact]
     public void DomainObjectDisplayService_ToString_UsesCustomDisplayFunction()
     {
-        //Arrange
+        // Arrange
         var sp = new ServiceCollection()
             .AddVisualIdentitySource(b => b.SetDisplay((TestObject2 v) => v.MyName))
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
         var service = sp.GetRequiredService<IDomainObjectDisplayService>();
+        var testObject = new TestObject2 { MyName = nameof(DomainObjectDisplayService_ToString_UsesCustomDisplayFunction) };
 
-        var testObject = new TestObject2 { MyName = nameof(DomainObjectDisplayService_ToString_ReturnsConfiguredPropertyName) };
-
-        //Act
+        // Act
         var result = service.ToString(testObject);
 
-        //Assert
+        // Assert
         result.Should().Be(testObject.MyName);
+    }
+    public class TestObject1
+    {
+        public required string Name { get; set; }
     }
 
     public class TestObject2

@@ -49,6 +49,7 @@ public class VisualIdentityInfoSourceTests
         //Assert
         result.Should().Be(expectedResult);
     }
+
     public class TestObject1
     {
         public required string Name { get; set; }
