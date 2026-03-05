@@ -10,7 +10,7 @@ public class ServiceProxyTypeRedirector(IEnumerable<ServiceProxyTypeRedirectInfo
 
     public Type? TryRedirect(Type type)
     {
-        return cache.GetOrAdd(type, () =>
+        return cache.GetOrAdd(type, _ =>
         {
             var directResult = this.baseCache.GetValueOrDefault(type) ;
 

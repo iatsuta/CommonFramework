@@ -34,7 +34,7 @@ public class LambdaCompileCache(LambdaCompileMode mode, IEqualityComparer<Lambda
 		return
 			this.rootCache
 				.GetOrAdd(ValueTuple.Create(typeof(TDelegate), (expr.Body as MethodCallExpression)?.Method),
-					() => new ConcurrentDictionary<LambdaExpression, Delegate>(lambdaComparer))
+					_ => new ConcurrentDictionary<LambdaExpression, Delegate>(lambdaComparer))
 				.GetOrAdd(expr, _ =>
 					expr.Pipe(mode.HasFlag(LambdaCompileMode.IgnoreStringCase),
 							lambda => lambda.UpdateBodyBase(new OverrideStringEqualityExpressionVisitor(StringComparison.CurrentCultureIgnoreCase)))

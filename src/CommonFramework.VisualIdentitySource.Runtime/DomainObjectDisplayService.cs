@@ -10,7 +10,7 @@ public class DomainObjectDisplayService(IVisualIdentityInfoSource visualIdentity
 	public string ToString<TDomainObject>(TDomainObject domainObject)
 		where TDomainObject : class
 	{
-		var del = this.cache.GetOrAdd(typeof(TDomainObject), () => this.GetActualDisplayObjectInfo<TDomainObject>().DisplayFunc);
+		var del = this.cache.GetOrAdd(typeof(TDomainObject), _ => this.GetActualDisplayObjectInfo<TDomainObject>().DisplayFunc);
 
 		return ((Func<TDomainObject, string>)del).Invoke(domainObject);
 	}
