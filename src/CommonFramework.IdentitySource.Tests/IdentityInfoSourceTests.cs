@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.IdentitySource.Tests;
 
-public class IdentitySourceTests
+public class IdentityInfoSourceTests
 {
 	[Fact]
 	public void GetDefaultIdentityInfo_ResultCorrected()

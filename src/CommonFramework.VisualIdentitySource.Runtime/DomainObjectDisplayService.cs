@@ -5,13 +5,13 @@ namespace CommonFramework.VisualIdentitySource;
 public class DomainObjectDisplayService(IVisualIdentityInfoSource visualIdentityInfoSource, IEnumerable<DisplayObjectInfo> customDisplayObjectInfoList)
 	: IDomainObjectDisplayService
 {
-	private readonly ConcurrentDictionary<Type, Delegate> cache = [];
+	private readonly ConcurrentDictionary<Type, DisplayObjectInfo> cache = [];
 
 	public string ToString<TDomainObject>(TDomainObject domainObject)
 		where TDomainObject : class =>
         this.cache
-            .GetOrAddAs(typeof(TDomainObject), _ => this.GetActualDisplayObjectInfo<TDomainObject>().DisplayFunc)
-            .Invoke(domainObject);
+            .GetOrAddAs(typeof(TDomainObject), _ => this.GetActualDisplayObjectInfo<TDomainObject>())
+            .DisplayFunc(domainObject);
 
     private DisplayObjectInfo<TDomainObject> GetActualDisplayObjectInfo<TDomainObject>()
 		where TDomainObject : class
