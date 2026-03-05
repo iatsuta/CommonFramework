@@ -54,6 +54,16 @@ public static class EnumerableExtensions
         return source.SelectMany(child => child.GetAllElements(getChildFunc));
     }
 
+    public static IEnumerable<T> GetAllElements<T>(this T source, Func<T, IEnumerable<T>> getChildFunc)
+    {
+        yield return source;
+
+        foreach (var element in getChildFunc(source).SelectMany(child => child.GetAllElements(getChildFunc)))
+        {
+            yield return element;
+        }
+    }
+
     public static IEnumerable<T> GetAllElements<T>(this T? source, Func<T, T?> getNextFunc, bool skipFirstElement)
         where T : class
     {

@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CommonFramework.DependencyInjection;
 
-public class ServiceProxyBuilder : IServiceProxyBuilder, IServiceCollectionBuilder
+public class ServiceProxyBuilder : IServiceProxyBuilder, IServiceInitializer
 {
-    private readonly List<ServiceProxyTypeRedirectInfo> redirects = new();
+    private readonly List<ServiceProxyTypeRedirectInfo> redirects = [];
 
     public IServiceProxyBuilder AddRedirect(Type from, Type to)
     {

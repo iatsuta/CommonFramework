@@ -8,7 +8,7 @@ public static class ServiceCollectionExtensions
     extension(IServiceCollection services)
     {
         public IServiceCollection AddServiceProxyFactory(Action<IServiceProxyBuilder>? setup = null) =>
-            services.Initialize<ServiceProxyBuilder>();
+            services.Initialize<ServiceProxyBuilder>(setup);
 
         public bool AlreadyInitialized<TService>(ServiceLifetime lifetime = ServiceLifetime.Singleton, bool isKeyed = false) =>
 
@@ -22,16 +22,25 @@ public static class ServiceCollectionExtensions
                 sd.IsKeyedService == isKeyed && sd.Lifetime == lifetime && sd.ServiceType == typeof(TService) &&
                 sd.ImplementationType == typeof(TImplementation));
 
-        public IServiceCollection Initialize<TBuilder>(Action<TBuilder>? setup = null)
-            where TBuilder : IServiceCollectionBuilder, new()
+        public IServiceCollection Initialize<TServiceInitializer>(Action<TServiceInitializer>? setup)
+            where TServiceInitializer : IServiceInitializer<IServiceCollection>, new() =>
+            services.Initialize<IServiceCollection, TServiceInitializer>(setup);
+    }
+
+    extension<TService>(TService service)
+    {
+        public TService Initialize<TServiceInitializer>(Action<TServiceInitializer>? setup)
+            where TServiceInitializer : IServiceInitializer<TService>, new() =>
+            service.Initialize(new TServiceInitializer(), setup);
+
+        public TService Initialize<TServiceInitializer>(TServiceInitializer initializer, Action<TServiceInitializer>? setup)
+            where TServiceInitializer : IServiceInitializer<TService>
         {
-            var builder = new TBuilder();
+            setup?.Invoke(initializer);
 
-            setup?.Invoke(builder);
+            initializer.Initialize(service);
 
-            builder.Initialize(services);
-
-            return services;
+            return service;
         }
     }
 

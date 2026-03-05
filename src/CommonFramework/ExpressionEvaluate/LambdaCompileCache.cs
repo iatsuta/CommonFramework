@@ -11,10 +11,9 @@ public class LambdaCompileCache(LambdaCompileMode mode, IEqualityComparer<Lambda
 	public LambdaCompileCache(LambdaCompileMode mode)
 		: this(mode, ExpressionComparer.WithoutConst.LambdaComparer)
 	{
-
 	}
 
-	private readonly ConcurrentDictionary<ValueTuple<Type, MethodInfo?>, ConcurrentDictionary<LambdaExpression, Delegate>> rootCache = new();
+	private readonly ConcurrentDictionary<ValueTuple<Type, MethodInfo?>, ConcurrentDictionary<LambdaExpression, Delegate>> rootCache = [];
 
 	public TDelegate GetFunc<TDelegate>(Expression<TDelegate> lambdaExpression)
 	{
@@ -35,7 +34,7 @@ public class LambdaCompileCache(LambdaCompileMode mode, IEqualityComparer<Lambda
 		return
 			this.rootCache
 				.GetOrAdd(ValueTuple.Create(typeof(TDelegate), (expr.Body as MethodCallExpression)?.Method),
-					_ => new ConcurrentDictionary<LambdaExpression, Delegate>(lambdaComparer))
+					() => new ConcurrentDictionary<LambdaExpression, Delegate>(lambdaComparer))
 				.GetOrAdd(expr, _ =>
 					expr.Pipe(mode.HasFlag(LambdaCompileMode.IgnoreStringCase),
 							lambda => lambda.UpdateBodyBase(new OverrideStringEqualityExpressionVisitor(StringComparison.CurrentCultureIgnoreCase)))

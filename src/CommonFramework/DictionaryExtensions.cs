@@ -26,21 +26,19 @@ public static class DictionaryExtensions
             return value;
         }
 
-        public async Task<TValue> GetValueOrCreateAsync(TKey key, Func<TKey, Task<TValue>> getNewValue)
+        public async ValueTask<TValue> GetValueOrCreateAsync(TKey key, Func<TKey, ValueTask<TValue>> getNewValue)
         {
-            if (source.TryGetValue(key, out var value))
+            if (!source.TryGetValue(key, out var value))
             {
-                return value;
+                value = await getNewValue(key);
+
+                source[key] = value;
             }
-
-            value = await getNewValue(key);
-
-            source.Add(key, value);
 
             return value;
         }
 
-        public Task<TValue> GetValueOrCreateAsync(TKey key, Func<Task<TValue>> getNewValue) =>
+        public ValueTask<TValue> GetValueOrCreateAsync(TKey key, Func<ValueTask<TValue>> getNewValue) =>
             source.GetValueOrCreateAsync(key, _ => getNewValue());
     }
 
