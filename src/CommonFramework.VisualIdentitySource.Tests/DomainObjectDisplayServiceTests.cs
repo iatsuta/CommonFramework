@@ -61,6 +61,7 @@ public class DomainObjectDisplayServiceTests
         // Assert
         result.Should().Be(testObject.MyName);
     }
+
     public class TestObject1
     {
         public required string Name { get; set; }
