@@ -9,7 +9,7 @@ public class IdentityInfoSource(IIdentityPropertyExtractor propertyExtractor, IE
 
     public IdentityInfo GetIdentityInfo(Type domainObjectType)
     {
-        return this.identityInfoCache.GetOrAdd(domainObjectType, () =>
+        return this.identityInfoCache.GetOrAdd(domainObjectType, _ =>
         {
             var customInfo = customInfoList.SingleOrDefault(identityInfo => identityInfo.DomainObjectType == domainObjectType);
 
