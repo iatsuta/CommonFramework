@@ -8,14 +8,12 @@ public class DomainObjectDisplayService(IVisualIdentityInfoSource visualIdentity
 	private readonly ConcurrentDictionary<Type, Delegate> cache = [];
 
 	public string ToString<TDomainObject>(TDomainObject domainObject)
-		where TDomainObject : class
-	{
-		var del = this.cache.GetOrAdd(typeof(TDomainObject), _ => this.GetActualDisplayObjectInfo<TDomainObject>().DisplayFunc);
+		where TDomainObject : class =>
+        this.cache
+            .GetOrAddAs(typeof(TDomainObject), _ => this.GetActualDisplayObjectInfo<TDomainObject>().DisplayFunc)
+            .Invoke(domainObject);
 
-		return ((Func<TDomainObject, string>)del).Invoke(domainObject);
-	}
-
-	private DisplayObjectInfo<TDomainObject> GetActualDisplayObjectInfo<TDomainObject>()
+    private DisplayObjectInfo<TDomainObject> GetActualDisplayObjectInfo<TDomainObject>()
 		where TDomainObject : class
 	{
 		if (customDisplayObjectInfoList.SingleOrDefault(info => info.DomainObjectType == typeof(TDomainObject)) is { } customInfo)
