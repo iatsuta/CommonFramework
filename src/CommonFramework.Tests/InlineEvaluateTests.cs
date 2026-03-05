@@ -45,6 +45,22 @@ public class InlineEvaluateTests
         result.Should().Be(expectedResult, ExpressionComparer.Default);
     }
 
+    [Fact]
+    public void InlineEvaluate_ReplacesCompileWithExpressionInlining()
+    {
+        // Arrange
+        Expression<Func<int, int>> testExpression = x => x + 1;
+
+        Expression<Func<IEnumerable<int>, IEnumerable<int>>> expectedResult = stream => stream.Select(x => x + 1);
+
+        // Act
+        var result = ExpressionEvaluateHelper.InlineEvaluate(Expression<Func<IEnumerable<int>, IEnumerable<int>>> (ee) =>
+            stream => stream.Select(ee.Compile(testExpression)));
+
+        // Assert
+        result.Should().Be(expectedResult, ExpressionComparer.Default);
+    }
+
     public class BusinessUnit
     {
         public Guid Id { get; set; }

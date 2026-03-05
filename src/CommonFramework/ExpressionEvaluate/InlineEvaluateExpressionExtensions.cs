@@ -19,15 +19,31 @@ public static class InlineEvaluateExpressionExtensions
 
     private sealed class InlineEvaluateExpressionVisitor : ExpressionVisitor
     {
-        private static readonly MethodInfo[] EvalMethods = typeof(IExpressionEvaluator).GetMethods().Where(method => method.Name == "Evaluate").ToArray();
+        private static readonly MethodInfo[] EvalMethods = typeof(IExpressionEvaluator).GetMethods().Where(method => method.Name == nameof(IExpressionEvaluator.Evaluate)).ToArray();
+
+        private static readonly MethodInfo CompileMethod = typeof(IExpressionEvaluator).GetMethods().Single(method => method.Name == nameof(IExpressionEvaluator.Compile));
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var baseVisited = base.VisitMethodCall(node);
 
             return TryInlineEvaluate(baseVisited)
-                       .Or(() => this.VisitExpressionArguments(baseVisited))
-                       .GetValueOrDefault(baseVisited);
+                .Or(() => TryInlineCompile(baseVisited))
+                .Or(() => this.VisitExpressionArguments(baseVisited))
+                .GetValueOrDefault(baseVisited);
+        }
+
+        private static Maybe<Expression> TryInlineCompile(Expression baseNode)
+        {
+            return
+
+                from node in (baseNode as MethodCallExpression).ToMaybe()
+
+                where node.Method.IsGenericMethodImplementation(CompileMethod)
+
+                from compileLambda in node.Arguments.Single().GetDeepMemberConstValue<LambdaExpression>()
+
+                select (Expression)compileLambda;
         }
 
         private static Maybe<Expression> TryInlineEvaluate(Expression baseNode)
