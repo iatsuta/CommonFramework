@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.VisualIdentitySource.DependencyInjection;
 
-public class VisualIdentitySourceBuilder : IVisualIdentitySourceBuilder, IServiceCollectionBuilder
+public class VisualIdentitySourceBuilder : IVisualIdentitySourceBuilder, IServiceInitializer
 {
     private VisualIdentityPropertySourceSettings? customSettings;
 

@@ -20,7 +20,7 @@ public class VisualIdentityInfoSource(IVisualIdentityPropertyExtractor propertyE
 
     public VisualIdentityInfo? TryGetVisualIdentityInfo(Type domainObjectType)
     {
-        return this.cache.GetOrAdd(domainObjectType, _ =>
+        return this.cache.GetOrAdd(domainObjectType, () =>
         {
             var customInfo = customInfoList.SingleOrDefault(identityInfo => identityInfo.DomainObjectType == domainObjectType);
 

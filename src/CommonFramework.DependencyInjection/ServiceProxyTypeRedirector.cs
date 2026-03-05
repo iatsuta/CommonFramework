@@ -6,11 +6,11 @@ public class ServiceProxyTypeRedirector(IEnumerable<ServiceProxyTypeRedirectInfo
 {
     private readonly Dictionary<Type, Type> baseCache = infoList.ToDictionary(info => info.From, info => info.To);
 
-    private readonly ConcurrentDictionary<Type, Type?> cache = new();
+    private readonly ConcurrentDictionary<Type, Type?> cache = [];
 
     public Type? TryRedirect(Type type)
     {
-        return cache.GetOrAdd(type, _ =>
+        return cache.GetOrAdd(type, () =>
         {
             var directResult = this.baseCache.GetValueOrDefault(type) ;
 
