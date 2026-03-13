@@ -5,10 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.VisualIdentitySource.Tests;
 
-public class VisualIdentityInfoSourceTests
+public class VisualIdentityInfoProxyTests
 {
     [Fact]
-    public void GetDefaultVisualIdentityInfo_ResultCorrected()
+    public void Should_Resolve_VisualIdentityInfo_With_DefaultNameLambda()
     {
         //Arrange
         var nameLambda = ExpressionHelper.Create((TestObject1 v) => v.Name);
@@ -17,19 +17,17 @@ public class VisualIdentityInfoSourceTests
             .AddVisualIdentitySource()
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
-        var service = sp.GetRequiredService<IVisualIdentityInfoSource>();
-
         var expectedResult = nameLambda.GetProperty().ToGetLambdaExpression();
 
         //Act
-        var result = service.GetVisualIdentityInfo<TestObject1>();
+        var visualIdentityInfo = sp.GetRequiredService<IVisualIdentityInfo<TestObject1>>();
 
         //Assert
-        result.Name.Path.Should().Be(expectedResult, ExpressionComparer.Default);
+        visualIdentityInfo.Name.Path.Should().Be(expectedResult, ExpressionComparer.Default);
     }
 
     [Fact]
-    public void GetCustomVisualIdentityInfo_ResultCorrected()
+    public void Should_Resolve_VisualIdentityInfo_With_CustomNameLambda()
     {
         //Arrange
         var nameLambda = ExpressionHelper.Create((TestObject2 v) => v.MyName);
@@ -38,15 +36,11 @@ public class VisualIdentityInfoSourceTests
             .AddVisualIdentitySource(b => b.SetName(nameLambda))
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
-        var service = sp.GetRequiredService<IVisualIdentityInfoSource>();
-
-        var expectedResult = new VisualIdentityInfo<TestObject2>(nameLambda);
-
         //Act
-        var result = service.GetVisualIdentityInfo<TestObject2>();
+        var visualIdentityInfo = sp.GetRequiredService<IVisualIdentityInfo<TestObject2>>();
 
         //Assert
-        result.Should().Be(expectedResult);
+        visualIdentityInfo.Name.Path.Should().Be(nameLambda, ExpressionComparer.Default);
     }
 
     public class TestObject1

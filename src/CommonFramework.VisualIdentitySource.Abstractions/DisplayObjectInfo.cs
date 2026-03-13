@@ -1,7 +1,7 @@
 ﻿namespace CommonFramework.VisualIdentitySource;
 
-public record DisplayObjectInfo<TDomainObject>(Func<TDomainObject, string> DisplayFunc) : DisplayObjectInfo
-	where TDomainObject : class
+public record DisplayObjectInfo<TDomainObject>(Func<TDomainObject, string> DisplayFunc) : DisplayObjectInfo, IDisplayObjectInfo<TDomainObject>
+    where TDomainObject : class
 {
 	public override Type DomainObjectType { get; } = typeof(TDomainObject);
 

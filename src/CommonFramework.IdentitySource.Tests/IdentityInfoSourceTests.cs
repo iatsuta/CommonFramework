@@ -50,8 +50,7 @@ public class IdentityInfoSourceTests
 		result.Should().Be(expectedResult);
 	}
 
-
-	public class TestObject1
+    public class TestObject1
 	{
 		public required int Id { get; set; }
 	}
