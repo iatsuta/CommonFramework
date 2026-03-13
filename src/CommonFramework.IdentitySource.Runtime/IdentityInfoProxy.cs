@@ -7,6 +7,8 @@ public class IdentityInfoProxy<TDomainObject, TIdent>(IIdentityInfoSource identi
 {
     private readonly IIdentityInfo<TDomainObject, TIdent> innerInfo = identityInfoSource.GetIdentityInfo<TDomainObject, TIdent>();
 
+    public Type IdentityType => innerInfo.IdentityType;
+
     public object GetId(TDomainObject domainObject) => innerInfo.GetId(domainObject);
 
     public PropertyAccessors<TDomainObject, TIdent> Id => innerInfo.Id;

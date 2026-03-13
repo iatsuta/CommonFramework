@@ -11,5 +11,7 @@ public interface IIdentityInfo<TDomainObject, TIdent> : IIdentityInfo<TDomainObj
 
 public interface IIdentityInfo<in TDomainObject>
 {
+    Type IdentityType { get; }
+
     object GetId(TDomainObject domainObject);
 }
