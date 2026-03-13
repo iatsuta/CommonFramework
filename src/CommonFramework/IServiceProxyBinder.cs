@@ -1,4 +1,4 @@
-﻿namespace CommonFramework.DependencyInjection.ServiceProxy;
+﻿namespace CommonFramework;
 
 public interface IServiceProxyBinder
 {
