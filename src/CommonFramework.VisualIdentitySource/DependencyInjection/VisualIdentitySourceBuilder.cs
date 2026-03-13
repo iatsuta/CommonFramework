@@ -49,9 +49,12 @@ public class VisualIdentitySourceBuilder : IVisualIdentitySourceBuilder, IServic
         }
         else
         {
+            services.AddSingleton(typeof(IVisualIdentityInfo<>), typeof(VisualIdentityInfoProxy<>));
             services.AddSingleton<IVisualIdentityInfoSource, VisualIdentityInfoSource>();
             services.AddSingleton<IVisualIdentityPropertyExtractor, VisualIdentityPropertyExtractor>();
 
+            services.AddSingleton(typeof(IDisplayObjectInfo<>), typeof(DisplayObjectInfoProxy<>));
+            services.AddSingleton<IDisplayObjectInfoSource, DisplayObjectInfoSource>();
             services.AddSingleton<IDomainObjectDisplayService, DomainObjectDisplayService>();
 
             services.AddSingleton(this.customSettings ?? VisualIdentityPropertySourceSettings.Default);

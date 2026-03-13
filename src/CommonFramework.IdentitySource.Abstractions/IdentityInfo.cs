@@ -2,7 +2,7 @@
 
 namespace CommonFramework.IdentitySource;
 
-public record IdentityInfo<TDomainObject, TIdent>(PropertyAccessors<TDomainObject, TIdent> Id) : IdentityInfo<TDomainObject>
+public record IdentityInfo<TDomainObject, TIdent>(PropertyAccessors<TDomainObject, TIdent> Id) : IdentityInfo<TDomainObject>, IIdentityInfo<TDomainObject, TIdent>
     where TIdent : notnull
 {
 	public IdentityInfo(Expression<Func<TDomainObject, TIdent>> idPath) :
@@ -23,7 +23,7 @@ public record IdentityInfo<TDomainObject, TIdent>(PropertyAccessors<TDomainObjec
     }
 }
 
-public abstract record IdentityInfo<TDomainObject> : IdentityInfo
+public abstract record IdentityInfo<TDomainObject> : IdentityInfo, IIdentityInfo<TDomainObject>
 {
     public override Type DomainObjectType { get; } = typeof(TDomainObject);
 
@@ -32,7 +32,7 @@ public abstract record IdentityInfo<TDomainObject> : IdentityInfo
 
 public abstract record IdentityInfo
 {
-	public abstract Type DomainObjectType { get; }
+    public abstract Type DomainObjectType { get; }
 
-	public abstract Type IdentityType { get; }
+    public abstract Type IdentityType { get; }
 }

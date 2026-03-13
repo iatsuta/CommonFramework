@@ -2,7 +2,7 @@
 
 namespace CommonFramework.VisualIdentitySource;
 
-public record VisualIdentityInfo<TDomainObject>(PropertyAccessors<TDomainObject, string> Name) : VisualIdentityInfo
+public record VisualIdentityInfo<TDomainObject>(PropertyAccessors<TDomainObject, string> Name) : VisualIdentityInfo, IVisualIdentityInfo<TDomainObject>
 {
 	public VisualIdentityInfo(Expression<Func<TDomainObject, string>> namePath) :
 		this(namePath.ToPropertyAccessors())
