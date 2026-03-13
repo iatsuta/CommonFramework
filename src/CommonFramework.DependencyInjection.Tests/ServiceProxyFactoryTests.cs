@@ -16,6 +16,8 @@ public sealed class ServiceProxyFactoryTests
 
     private interface IService<T>;
 
+    private class Service<T, THiddenGeneric> : IService<T>;
+
     [Fact]
     public void AddScopedFrom_resolves_service_via_service_proxy_factory_create()
     {
@@ -72,7 +74,7 @@ public sealed class ServiceProxyFactoryTests
     {
         // arrange
         var provider = new ServiceCollection()
-            .AddServiceProxyFactory(b => b.AddRedirect(typeof(OriginalService<>), typeof(Service<>)))
+            .AddServiceProxyFactory(b => b.SetRedirect(typeof(OriginalService<>), typeof(Service<>)))
             .ReplaceScopedFrom(spf => spf.Create<IService<int>, OriginalService<int>>())
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
@@ -82,5 +84,47 @@ public sealed class ServiceProxyFactoryTests
 
         // assert
         service.Should().BeOfType<Service<int>>();
+    }
+
+    [Fact]
+    public void ServiceProxyFactory_Creates_CorrectServiceType()
+    {
+        // arrange
+        var sp = new ServiceCollection()
+            .AddSingletonServiceProxy<IService<int>, Service<int, string>>()
+            .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+
+        var serviceProxyFactory = sp.GetServiceProxyFactory();
+
+        // act
+        var service = serviceProxyFactory.Create<IService<int>>();
+
+        // assert
+        service.Should().BeOfType<Service<int, string>>();
+    }
+
+    [Fact]
+    public void Should_Create_ServiceProxy_Using_CustomBinder()
+    {
+        // arrange
+        var sp = new ServiceCollection()
+            .BindSingletonServiceProxy<IService<int>, ServiceProxyBinder<int>>()
+            .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+
+        var serviceProxyFactory = sp.GetServiceProxyFactory();
+
+        // act
+        var service = serviceProxyFactory.Create<IService<int>>();
+
+        // assert
+        service.Should().BeOfType<Service<int, string>>();
+    }
+
+    private class ServiceProxyBinder<T> : IServiceProxyBinder
+    {
+        public Type GetTargetServiceType()
+        {
+            return typeof(Service<T, string>);
+        }
     }
 }

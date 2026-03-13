@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 
-namespace CommonFramework.DependencyInjection;
+namespace CommonFramework.DependencyInjection.ServiceProxy;
 
 public class ServiceProxyTypeRedirector(IEnumerable<ServiceProxyTypeRedirectInfo> infoList) : IServiceProxyTypeRedirector
 {
-    private readonly Dictionary<Type, Type> baseCache = infoList.ToDictionary(info => info.From, info => info.To);
+    private readonly Dictionary<Type, Type> baseCache = infoList.GroupBy(info => info.From, info => info.To).ToDictionary(g => g.Key, g => g.Last());
 
     private readonly ConcurrentDictionary<Type, Type?> cache = [];
 

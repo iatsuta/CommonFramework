@@ -1,4 +1,4 @@
-﻿namespace CommonFramework.DependencyInjection;
+﻿namespace CommonFramework.DependencyInjection.ServiceProxy;
 
 public interface IServiceProxyTypeRedirector
 {
