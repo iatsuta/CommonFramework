@@ -157,11 +157,9 @@ public static class TypeExtensions
             return type.IsGenericTypeImplementation(typeof(Maybe<>)) ? type.GetGenericArguments().Single() : null;
         }
 
-        public bool IsMaybe(bool withNested = false)
+        public bool IsMaybe()
         {
-            return type.GetMaybeElementType() != null
-
-                   || (withNested && (type.IsGenericTypeImplementation(typeof(Just<>)) || type.IsGenericTypeImplementation(typeof(Nothing<>))));
+            return type.GetMaybeElementType() != null;
         }
 
         public PropertyInfo GetRequiredProperty(string propertyName, BindingFlags bindingFlags)

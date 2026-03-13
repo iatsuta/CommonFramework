@@ -1,10 +1,24 @@
 ﻿namespace CommonFramework.Maybe;
 
-public abstract record Maybe<T>
+public readonly struct Maybe<T>
 {
-    public abstract bool HasValue { get; }
+    private readonly T value;
 
-    public static readonly Maybe<T> Nothing = new Nothing<T>();
+    public readonly bool HasValue;
+
+    private Maybe(T value, bool hasValue)
+    {
+        this.value = value;
+        this.HasValue = hasValue;
+    }
+
+    public T Value => !this.HasValue ? throw new InvalidOperationException("No value present") : value;
+
+    public static Maybe<T> Nothing => new Maybe<T>(default!, false);
+
+    public static Maybe<T> Just(T value) => new Maybe<T>(value, true);
+
+    public override string ToString() => HasValue ? $"{value}" : "";
 }
 
 public static class Maybe
@@ -22,7 +36,7 @@ public static class Maybe
 
     public static Maybe<T> Return<T>(T value)
     {
-        return new Just<T>(value);
+        return Maybe<T>.Just(value);
     }
 
     public static Maybe<T> ToMaybe<T>(this T? value)
@@ -61,4 +75,4 @@ public static class Maybe
     public delegate bool TryMethod<in TArg, TResult>(TArg arg, out TResult result);
 
     public delegate bool TryMethod<in TArg1, in TArg2, TResult>(TArg1 arg1, TArg2 arg2, out TResult result);
-}    
+}
