@@ -76,7 +76,7 @@ public static class InjectMaybeExpressionExtensions
     private static Maybe<Expression> OptimizeSelectSingle(this Expression expression, Func<Expression, Expression> getResult)
     {
         return
-            
+
             from callExpr in (expression as MethodCallExpression).ToMaybe()
 
             where callExpr.Method.IsGenericMethodImplementation(SelectMethod)
@@ -105,7 +105,7 @@ public static class InjectMaybeExpressionExtensions
     private static Maybe<Expression> OverrideSelectInternal(this Expression expression, Func<Expression, Expression> getResult)
     {
         return
-            
+
             from inputType in expression.Type.GetMaybeElementType().ToMaybe()
 
             let param = Expression.Parameter(inputType)

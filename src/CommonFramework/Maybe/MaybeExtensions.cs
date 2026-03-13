@@ -4,11 +4,7 @@ public static class MaybeExtensions
 {
     public static TResult Match<TSource, TResult>(this Maybe<TSource> maybeValue, Func<TSource, TResult> fromJustResult, Func<TResult> fromNothingResult)
     {
-        return maybeValue switch
-        {
-            Just<TSource> just => fromJustResult(just.Value),
-            _ => fromNothingResult()
-        };
+        return maybeValue.HasValue ? fromJustResult(maybeValue.Value) : fromNothingResult();
     }
 
     public static Maybe<TResult> Or<TSource, TResult>(this Maybe<TSource> v1, Func<Maybe<TResult>> getV2)
