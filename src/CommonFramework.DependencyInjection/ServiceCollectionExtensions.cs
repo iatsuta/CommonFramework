@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommonFramework.DependencyInjection.ServiceProxy;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CommonFramework.DependencyInjection;
@@ -71,6 +73,36 @@ public static class ServiceCollectionExtensions
         {
             return services.AddScopedFrom<TService, IServiceProxyFactory>(selector);
         }
+
+        public IServiceCollection AddScopedServiceProxy<TService>(Func<IServiceProvider, Type> implementTypeSelector)
+            where TService : class
+        {
+            return services
+                .AddServiceProxyFactory(b => b.SetRedirect(typeof(TService), implementTypeSelector))
+                .AddScopedFrom(spf => spf.Create<TService>());
+        }
+
+        public IServiceCollection AddScopedServiceProxy<TService>(Type to)
+            where TService : class
+        {
+            return services
+                .AddServiceProxyFactory(b => b.SetRedirect(typeof(TService), to))
+                .AddScopedFrom(spf => spf.Create<TService>());
+        }
+
+        public IServiceCollection AddScopedServiceProxy<TService, TImplementation>()
+            where TService : class
+            where TImplementation : TService =>
+            services.AddScopedServiceProxy<TService>(typeof(TImplementation));
+
+        public IServiceCollection BindScopedServiceProxy<TService, TServiceProxyBinder>()
+            where TService : class
+            where TServiceProxyBinder : class, IServiceProxyBinder
+        {
+            return services
+                .AddServiceProxyFactory(b => b.BindRedirect<TServiceProxyBinder>(typeof(TService)))
+                .AddScopedFrom(spf => spf.Create<TService>());
+        }
     }
 
     extension(IServiceCollection services)
@@ -99,6 +131,36 @@ public static class ServiceCollectionExtensions
             where TService : class
         {
             return services.AddSingletonFrom<TService, IServiceProxyFactory>(selector);
+        }
+
+        public IServiceCollection AddSingletonServiceProxy<TService>(Func<IServiceProvider, Type> implementTypeSelector)
+            where TService : class
+        {
+            return services
+                .AddServiceProxyFactory(b => b.SetRedirect(typeof(TService), implementTypeSelector))
+                .AddSingletonFrom(spf => spf.Create<TService>());
+        }
+
+        public IServiceCollection AddSingletonServiceProxy<TService>(Type to)
+            where TService : class
+        {
+            return services
+                .AddServiceProxyFactory(b => b.SetRedirect(typeof(TService), to))
+                .AddSingletonFrom(spf => spf.Create<TService>());
+        }
+
+        public IServiceCollection AddSingletonServiceProxy<TService, TImplementation>()
+            where TService : class
+            where TImplementation : TService =>
+            services.AddSingletonServiceProxy<TService>(typeof(TImplementation));
+
+        public IServiceCollection BindSingletonServiceProxy<TService, TServiceProxyBinder>()
+            where TService : class
+            where TServiceProxyBinder : class, IServiceProxyBinder
+        {
+            return services
+                .AddServiceProxyFactory(b => b.BindRedirect<TServiceProxyBinder>(typeof(TService)))
+                .AddSingletonFrom(spf => spf.Create<TService>());
         }
     }
 

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace CommonFramework.DependencyInjection;
+namespace CommonFramework.DependencyInjection.ServiceProxy;
 
 public class ServiceProxyFactory(IServiceProvider serviceProvider, IServiceProxyTypeRedirector redirector) : IServiceProxyFactory
 {
