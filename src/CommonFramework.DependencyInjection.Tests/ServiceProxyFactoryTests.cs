@@ -1,6 +1,4 @@
-﻿using CommonFramework.DependencyInjection.ServiceProxy;
-
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace CommonFramework.DependencyInjection.Tests;
 
