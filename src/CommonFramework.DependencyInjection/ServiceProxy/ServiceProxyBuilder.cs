@@ -17,7 +17,9 @@ public class ServiceProxyBuilder : IServiceProxyBuilder, IServiceInitializer
 
     public IServiceProxyBuilder BindRedirect(Type sourceType, Type binderType, bool replace)
     {
-        if (!typeof(IServiceProxyBinder).IsAssignableFrom(binderType))
+        if (!typeof(IServiceProxyBinder).IsAssignableFrom(binderType)
+            || sourceType.IsGenericTypeDefinition != binderType.IsGenericTypeDefinition
+            || (sourceType.IsGenericTypeDefinition && sourceType.GetGenericArguments().Length != binderType.GetGenericArguments().Length))
         {
             throw new ArgumentOutOfRangeException(nameof(binderType));
         }
