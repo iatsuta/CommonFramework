@@ -12,7 +12,7 @@ public record VisualIdentityInfo<TDomainObject>(PropertyAccessors<TDomainObject,
 	public override Type DomainObjectType { get; } = typeof(TDomainObject);
 }
 
-public abstract record VisualIdentityInfo
+public abstract record VisualIdentityInfo : IVisualIdentityInfo
 {
 	public abstract Type DomainObjectType { get; }
 }
