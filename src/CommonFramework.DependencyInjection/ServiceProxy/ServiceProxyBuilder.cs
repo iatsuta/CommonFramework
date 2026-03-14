@@ -7,25 +7,34 @@ public class ServiceProxyBuilder : IServiceProxyBuilder, IServiceInitializer
 {
     private readonly List<Action<IServiceCollection>> registerRedirects = [];
 
-    public IServiceProxyBuilder SetRedirect(Type from, Func<IServiceProvider, Type> toSelector)
+    public IServiceProxyBuilder SetRedirect(Type sourceType, Func<IServiceProvider, Type> targetTypeSelector, bool replace)
     {
-        this.registerRedirects.Add(sc => sc.AddSingleton(sp => new ServiceProxyTypeRedirectInfo(from, toSelector(sp))));
+        this.registerRedirects.Add(sc => sc.AddSingleton(sp =>
+            new ServiceProxyTypeRedirectInfo(sourceType, targetTypeSelector(sp)) { Replace = replace, IsBinder = false }));
 
         return this;
     }
 
-    public IServiceProxyBuilder BindRedirect<TServiceProxyBinder>(Type from)
-        where TServiceProxyBinder : class, IServiceProxyBinder
+    public IServiceProxyBuilder BindRedirect(Type sourceType, Type binderType, bool replace)
     {
-        this.registerRedirects.Add(sc => sc
-            .AddSingleton<TServiceProxyBinder>()
-            .AddSingletonFrom((TServiceProxyBinder binder) => new ServiceProxyTypeRedirectInfo(from, binder.GetTargetServiceType())));
+        if (!typeof(IServiceProxyBinder).IsAssignableFrom(binderType))
+        {
+            throw new ArgumentOutOfRangeException(nameof(binderType));
+        }
+
+        this.registerRedirects.Add(sc =>
+        {
+            sc.TryAddSingleton(binderType);
+
+            sc.AddSingleton(new ServiceProxyTypeRedirectInfo(sourceType, binderType) { Replace = replace, IsBinder = true });
+        });
 
         return this;
     }
 
     public void Initialize(IServiceCollection services)
     {
+        services.TryAddTransient<INativeActivator, NativeActivator>();
         services.TryAddTransient<IServiceProxyFactory, ServiceProxyFactory>();
         services.TryAddSingleton<IServiceProxyTypeRedirector, ServiceProxyTypeRedirector>();
 

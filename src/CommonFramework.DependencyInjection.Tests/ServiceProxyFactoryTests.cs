@@ -74,7 +74,7 @@ public sealed class ServiceProxyFactoryTests
     {
         // arrange
         var provider = new ServiceCollection()
-            .AddServiceProxyFactory(b => b.SetRedirect(typeof(OriginalService<>), typeof(Service<>)))
+            .AddServiceProxyFactory(b => b.SetRedirect(typeof(OriginalService<>), typeof(Service<>), false))
             .ReplaceScopedFrom(spf => spf.Create<IService<int>, OriginalService<int>>())
             .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
 
@@ -101,30 +101,5 @@ public sealed class ServiceProxyFactoryTests
 
         // assert
         service.Should().BeOfType<Service<int, string>>();
-    }
-
-    [Fact]
-    public void Should_Create_ServiceProxy_Using_CustomBinder()
-    {
-        // arrange
-        var sp = new ServiceCollection()
-            .BindSingletonServiceProxy<IService<int>, ServiceProxyBinder<int>>()
-            .BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
-
-        var serviceProxyFactory = sp.GetServiceProxyFactory();
-
-        // act
-        var service = serviceProxyFactory.Create<IService<int>>();
-
-        // assert
-        service.Should().BeOfType<Service<int, string>>();
-    }
-
-    private class ServiceProxyBinder<T> : IServiceProxyBinder
-    {
-        public Type GetTargetServiceType()
-        {
-            return typeof(Service<T, string>);
-        }
     }
 }

@@ -2,10 +2,9 @@
 
 public interface IServiceProxyBuilder
 {
-    IServiceProxyBuilder SetRedirect(Type from, Type to) => this.SetRedirect(from, _ => to);
+    IServiceProxyBuilder SetRedirect(Type sourceType, Type targetType, bool replace) => this.SetRedirect(sourceType, _ => targetType, replace);
 
-    IServiceProxyBuilder SetRedirect(Type from, Func<IServiceProvider, Type> toSelector);
+    IServiceProxyBuilder SetRedirect(Type sourceType, Func<IServiceProvider, Type> targetTypeSelector, bool replace);
 
-    IServiceProxyBuilder BindRedirect<TServiceProxyBinder>(Type from)
-        where TServiceProxyBinder : class, IServiceProxyBinder;
+    IServiceProxyBuilder BindRedirect(Type sourceType, Type binderType, bool replace);
 }
