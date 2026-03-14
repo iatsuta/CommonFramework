@@ -9,9 +9,14 @@ public interface IIdentityInfo<TDomainObject, TIdent> : IIdentityInfo<TDomainObj
     Expression<Func<TDomainObject, bool>> CreateContainsFilter(IEnumerable<TIdent> idents);
 }
 
-public interface IIdentityInfo<in TDomainObject>
+public interface IIdentityInfo<in TDomainObject> : IIdentityInfo
 {
-    Type IdentityType { get; }
-
     object GetId(TDomainObject domainObject);
+}
+
+public interface IIdentityInfo
+{
+    Type DomainObjectType { get; }
+
+    Type IdentityType { get; }
 }

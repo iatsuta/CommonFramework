@@ -40,7 +40,9 @@ public class IdentitySourceBuilder : IIdentitySourceBuilder, IServiceInitializer
         }
         else
         {
+            services.AddSingleton(typeof(IIdentityInfo<>), typeof(IdentityInfoProxy<>));
             services.AddSingleton(typeof(IIdentityInfo<,>), typeof(IdentityInfoProxy<,>));
+
             services.AddSingleton<IIdentityInfoSource, IdentityInfoSource>();
             services.AddSingleton<IIdentityPropertyExtractor, IdentityPropertyExtractor>();
 
