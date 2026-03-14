@@ -2,5 +2,5 @@
 
 public interface IServiceProxyTypeRedirector
 {
-    Type? TryRedirect(Type type);
+    Type? TryRedirect(Type sourceType);
 }

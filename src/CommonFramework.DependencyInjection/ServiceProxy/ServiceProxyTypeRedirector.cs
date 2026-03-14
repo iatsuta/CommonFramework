@@ -1,30 +1,47 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 
 namespace CommonFramework.DependencyInjection.ServiceProxy;
 
-public class ServiceProxyTypeRedirector(IEnumerable<ServiceProxyTypeRedirectInfo> infoList) : IServiceProxyTypeRedirector
+public class ServiceProxyTypeRedirector(IEnumerable<ServiceProxyTypeRedirectInfo> infoList, INativeActivator nativeActivator) : IServiceProxyTypeRedirector
 {
-    private readonly Dictionary<Type, Type> baseCache = infoList.GroupBy(info => info.From, info => info.To).ToDictionary(g => g.Key, g => g.Last());
+    private readonly ImmutableArray<ServiceProxyTypeRedirectInfo> cachedList = [..infoList];
 
     private readonly ConcurrentDictionary<Type, Type?> cache = [];
 
-    public Type? TryRedirect(Type type)
-    {
-        return cache.GetOrAdd(type, _ =>
-        {
-            var directResult = this.baseCache.GetValueOrDefault(type) ;
+    public Type? TryRedirect(Type sourceType) => cache.GetOrAdd(sourceType, _ => this.TryFindRedirectInfo(sourceType).Maybe(this.GetTargetType));
 
-            if (directResult == null && type.IsGenericType)
+    private Type GetTargetType(ServiceProxyTypeRedirectInfo redirectInfo) =>
+        redirectInfo.IsBinder ? nativeActivator.Create<IServiceProxyBinder>(redirectInfo.TargetType).GetTargetServiceType() : redirectInfo.TargetType;
+
+    private ServiceProxyTypeRedirectInfo? TryFindRedirectInfo(Type sourceType) =>
+        this.GetRedirectCandidates(sourceType)
+            .Aggregate(default(ServiceProxyTypeRedirectInfo?), (prev, next) =>
             {
-                var genericResultType = baseCache.GetValueOrDefault(type.GetGenericTypeDefinition());
-
-                if (genericResultType != null)
+                if (prev == null)
                 {
-                    return genericResultType.MakeGenericType(type.GetGenericArguments());
+                    return next.Replace ? throw new InvalidOperationException("The first candidate cannot perform a replacement") : next;
                 }
-            }
+                else
+                {
+                    return next.Replace ? next : throw new InvalidOperationException("Each subsequent candidate must replace the previous candidate");
+                }
+            });
 
-            return directResult;
-        });
+    private IEnumerable<ServiceProxyTypeRedirectInfo> GetRedirectCandidates(Type sourceType)
+    {
+        foreach (var redirectInfo in cachedList)
+        {
+            if (redirectInfo.SourceType == sourceType)
+            {
+                yield return redirectInfo;
+            }
+            else if (redirectInfo.TargetType.IsGenericTypeDefinition && sourceType.IsGenericTypeImplementation(redirectInfo.SourceType))
+            {
+                var newTargetType = redirectInfo.TargetType.MakeGenericType(sourceType.GetGenericArguments());
+
+                yield return redirectInfo with { SourceType = sourceType, TargetType = newTargetType };
+            }
+        }
     }
 }
