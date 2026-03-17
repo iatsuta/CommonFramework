@@ -1,4 +1,6 @@
-﻿namespace CommonFramework;
+﻿using System.Collections.Immutable;
+
+namespace CommonFramework;
 
 public static class AsyncEnumerableExtensions
 {
@@ -10,6 +12,78 @@ public static class AsyncEnumerableExtensions
         {
             yield return value;
         }
+    }
+
+    public static async Task<ImmutableArray<T>> ToImmutableArray<T>(this IAsyncEnumerable<T> source)
+    {
+        var builder = ImmutableArray.CreateBuilder<T>();
+
+        await foreach (var item in source.ConfigureAwait(false))
+        {
+            builder.Add(item);
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static async Task<ImmutableList<T>> ToImmutableList<T>(this IAsyncEnumerable<T> source)
+    {
+        var builder = ImmutableList.CreateBuilder<T>();
+
+        await foreach (var item in source.ConfigureAwait(false))
+        {
+            builder.Add(item);
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static async Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TSource, TKey, TValue>(
+        this IAsyncEnumerable<TSource> source,
+        Func<TSource, TKey> keySelector,
+        Func<TSource, TValue> valueSelector,
+        IEqualityComparer<TKey>? comparer = null)
+        where TKey : notnull
+    {
+        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(comparer);
+
+        await foreach (var item in source.ConfigureAwait(false))
+        {
+            builder.Add(keySelector(item), valueSelector(item));
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static async Task<ImmutableDictionary<TKey, TSource>> ToImmutableDictionary<TSource, TKey>(
+        this IAsyncEnumerable<TSource> source,
+        Func<TSource, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer = null)
+        where TKey : notnull
+    {
+        var builder = ImmutableDictionary.CreateBuilder<TKey, TSource>(comparer);
+
+        await foreach (var item in source.ConfigureAwait(false))
+        {
+            builder.Add(keySelector(item), item);
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static async Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TKey, TValue>(
+        this IAsyncEnumerable<KeyValuePair<TKey, TValue>> source,
+        IEqualityComparer<TKey>? comparer = null)
+        where TKey : notnull
+    {
+        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(comparer);
+
+        await foreach (var item in source.ConfigureAwait(false))
+        {
+            builder.Add(item.Key, item.Value);
+        }
+
+        return builder.ToImmutable();
     }
 
     public static IAsyncEnumerable<T> GetAllElements<T>(this IAsyncEnumerable<T> source, Func<T, IAsyncEnumerable<T>> getChildFunc)
