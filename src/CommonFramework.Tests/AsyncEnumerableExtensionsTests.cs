@@ -17,18 +17,13 @@ public class AsyncEnumerableExtensionsTests
         await Task.CompletedTask;
     }
 
-    private static async IAsyncEnumerable<int> GetNumbers()
-    {
-        yield return 1;
-        yield return 1;
-        await Task.CompletedTask;
-    }
-
     [Fact]
     public async Task ToImmutableDictionary_Source_KeyValue_WithComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetStrings()
-            .ToImmutableDictionaryAsync(x => x.Length, x => x, EqualityComparer<int>.Default, CancellationToken.None);
+            .ToImmutableDictionaryAsync(x => x.Length, x => x, EqualityComparer<int>.Default, cancellationToken);
 
         result.Should().HaveCount(3);
         result[1].Should().Be("a");
@@ -39,8 +34,10 @@ public class AsyncEnumerableExtensionsTests
     [Fact]
     public async Task ToImmutableDictionary_Source_KeyValue_WithoutComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetStrings()
-            .ToImmutableDictionaryAsync(x => x.Length, x => x, CancellationToken.None);
+            .ToImmutableDictionaryAsync(x => x.Length, x => x, cancellationToken);
 
         result.Should().ContainKey(1).WhoseValue.Should().Be("a");
     }
@@ -48,8 +45,10 @@ public class AsyncEnumerableExtensionsTests
     [Fact]
     public async Task ToImmutableDictionary_Source_KeyOnly_WithoutComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetStrings()
-            .ToImmutableDictionaryAsync(x => x.Length, CancellationToken.None);
+            .ToImmutableDictionaryAsync(x => x.Length, cancellationToken);
 
         result[2].Should().Be("bb");
     }
@@ -57,8 +56,10 @@ public class AsyncEnumerableExtensionsTests
     [Fact]
     public async Task ToImmutableDictionary_Source_KeyOnly_WithComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetStrings()
-            .ToImmutableDictionaryAsync(x => x.Length, EqualityComparer<int>.Default, CancellationToken.None);
+            .ToImmutableDictionaryAsync(x => x.Length, EqualityComparer<int>.Default, cancellationToken);
 
         result[3].Should().Be("ccc");
     }
@@ -66,8 +67,10 @@ public class AsyncEnumerableExtensionsTests
     [Fact]
     public async Task ToImmutableDictionary_KeyValuePair_WithoutComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetPairs()
-            .ToImmutableDictionaryAsync(CancellationToken.None);
+            .ToImmutableDictionaryAsync(cancellationToken);
 
         result.Should().HaveCount(2);
         result[1].Should().Be("a");
@@ -76,30 +79,11 @@ public class AsyncEnumerableExtensionsTests
     [Fact]
     public async Task ToImmutableDictionary_KeyValuePair_WithComparer()
     {
+        var cancellationToken = TestContext.Current.CancellationToken;
+
         var result = await GetPairs()
-            .ToImmutableDictionaryAsync(EqualityComparer<int>.Default, CancellationToken.None);
+            .ToImmutableDictionaryAsync(EqualityComparer<int>.Default, cancellationToken);
 
         result[2].Should().Be("b");
     }
-
-    //[Fact]
-    //public async Task ToImmutableDictionary_Should_Throw_On_Duplicate_Key()
-    //{
-    //    Func<Task> act = async () =>
-    //        await GetNumbers().ToImmutableDictionaryAsync(x => x, x => x, CancellationToken.None);
-
-    //    await act.Should().ThrowAsync<ArgumentException>();
-    //}
-
-    //[Fact]
-    //public async Task ToImmutableDictionary_Should_Respect_Cancellation()
-    //{
-    //    using var cts = new CancellationTokenSource();
-    //    await cts.CancelAsync();
-
-    //    Func<Task> act = async () =>
-    //        await GetStrings().ToImmutableDictionaryAsync(x => x.Length, x => x, cts.Token);
-
-    //    await act.Should().ThrowAsync<OperationCanceledException>();
-    //}
 }

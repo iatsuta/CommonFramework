@@ -48,6 +48,23 @@ public static class AsyncEnumerableExtensions
         return builder.ToImmutable();
     }
 
+    public static async Task<ImmutableHashSet<T>> ToImmutableHashSetAsync<T>(
+        this IAsyncEnumerable<T> source,
+        CancellationToken cancellationToken = default)
+    {
+        if (source is null)
+            throw new ArgumentNullException(nameof(source));
+
+        var builder = ImmutableHashSet.CreateBuilder<T>();
+
+        await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            builder.Add(item);
+        }
+
+        return builder.ToImmutable();
+    }
+
     public static async Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionaryAsync<TSource, TKey, TValue>(
         this IAsyncEnumerable<TSource> source,
         Func<TSource, TKey> keySelector,
