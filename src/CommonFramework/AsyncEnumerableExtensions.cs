@@ -14,7 +14,7 @@ public static class AsyncEnumerableExtensions
         }
     }
 
-    public static async Task<ImmutableArray<T>> ToImmutableArray<T>(
+    public static async Task<ImmutableArray<T>> ToImmutableArrayAsync<T>(
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
@@ -31,7 +31,7 @@ public static class AsyncEnumerableExtensions
         return builder.ToImmutable();
     }
 
-    public static async Task<ImmutableList<T>> ToImmutableList<T>(
+    public static async Task<ImmutableList<T>> ToImmutableListAsync<T>(
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
@@ -48,7 +48,24 @@ public static class AsyncEnumerableExtensions
         return builder.ToImmutable();
     }
 
-    public static async Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TSource, TKey, TValue>(
+    public static async Task<ImmutableHashSet<T>> ToImmutableHashSetAsync<T>(
+        this IAsyncEnumerable<T> source,
+        CancellationToken cancellationToken = default)
+    {
+        if (source is null)
+            throw new ArgumentNullException(nameof(source));
+
+        var builder = ImmutableHashSet.CreateBuilder<T>();
+
+        await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            builder.Add(item);
+        }
+
+        return builder.ToImmutable();
+    }
+
+    public static async Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionaryAsync<TSource, TKey, TValue>(
         this IAsyncEnumerable<TSource> source,
         Func<TSource, TKey> keySelector,
         Func<TSource, TValue> valueSelector,
@@ -66,43 +83,43 @@ public static class AsyncEnumerableExtensions
         return builder.ToImmutable();
     }
 
-    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TSource, TKey, TValue>(
+    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionaryAsync<TSource, TKey, TValue>(
         this IAsyncEnumerable<TSource> source,
         Func<TSource, TKey> keySelector,
         Func<TSource, TValue> valueSelector,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => source.ToImmutableDictionary(keySelector, valueSelector, comparer: null, cancellationToken);
+        => source.ToImmutableDictionaryAsync(keySelector, valueSelector, comparer: null, cancellationToken);
 
 
-    public static Task<ImmutableDictionary<TKey, TSource>> ToImmutableDictionary<TSource, TKey>(
+    public static Task<ImmutableDictionary<TKey, TSource>> ToImmutableDictionaryAsync<TSource, TKey>(
         this IAsyncEnumerable<TSource> source,
         Func<TSource, TKey> keySelector,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => source.ToImmutableDictionary(keySelector, comparer: null, cancellationToken);
+        => source.ToImmutableDictionaryAsync(keySelector, comparer: null, cancellationToken);
 
-    public static Task<ImmutableDictionary<TKey, TSource>> ToImmutableDictionary<TSource, TKey>(
+    public static Task<ImmutableDictionary<TKey, TSource>> ToImmutableDictionaryAsync<TSource, TKey>(
         this IAsyncEnumerable<TSource> source,
         Func<TSource, TKey> keySelector,
         IEqualityComparer<TKey>? comparer,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => source.ToImmutableDictionary(keySelector, x => x, comparer, cancellationToken);
+        => source.ToImmutableDictionaryAsync(keySelector, x => x, comparer, cancellationToken);
 
 
-    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TKey, TValue>(
+    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionaryAsync<TKey, TValue>(
         this IAsyncEnumerable<KeyValuePair<TKey, TValue>> source,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => source.ToImmutableDictionary(comparer: null, cancellationToken);
+        => source.ToImmutableDictionaryAsync(comparer: null, cancellationToken);
 
-    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionary<TKey, TValue>(
+    public static Task<ImmutableDictionary<TKey, TValue>> ToImmutableDictionaryAsync<TKey, TValue>(
         this IAsyncEnumerable<KeyValuePair<TKey, TValue>> source,
         IEqualityComparer<TKey>? comparer,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => source.ToImmutableDictionary(x => x.Key, x => x.Value, comparer, cancellationToken);
+        => source.ToImmutableDictionaryAsync(x => x.Key, x => x.Value, comparer, cancellationToken);
 
 
     public static IAsyncEnumerable<T> GetAllElements<T>(this IAsyncEnumerable<T> source, Func<T, IAsyncEnumerable<T>> getChildFunc)
