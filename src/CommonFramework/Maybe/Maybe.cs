@@ -1,6 +1,6 @@
 ﻿namespace CommonFramework.Maybe;
 
-public readonly struct Maybe<T>
+public readonly record struct Maybe<T>
 {
     private readonly T value;
 
@@ -14,9 +14,9 @@ public readonly struct Maybe<T>
 
     public T Value => !this.HasValue ? throw new InvalidOperationException("No value present") : value;
 
-    public static Maybe<T> Nothing => new Maybe<T>(default!, false);
+    public static Maybe<T> Nothing => new (default!, false);
 
-    public static Maybe<T> Just(T value) => new Maybe<T>(value, true);
+    public static Maybe<T> Just(T value) => new (value, true);
 
     public override string ToString() => HasValue ? $"{value}" : "";
 }

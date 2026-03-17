@@ -2,9 +2,24 @@
 
 public static class MaybeExtensions
 {
-    public static TResult Match<TSource, TResult>(this Maybe<TSource> maybeValue, Func<TSource, TResult> fromJustResult, Func<TResult> fromNothingResult)
+    extension<TSource>(Maybe<TSource> maybeValue)
     {
-        return maybeValue.HasValue ? fromJustResult(maybeValue.Value) : fromNothingResult();
+        public TResult Match<TResult>(Func<TSource, TResult> fromJustResult, Func<TResult> fromNothingResult)
+        {
+            return maybeValue.HasValue ? fromJustResult(maybeValue.Value) : fromNothingResult();
+        }
+
+        public void Match(Action<TSource> fromJustAction, Action? fromNothingAction = null)
+        {
+            if (maybeValue.HasValue)
+            {
+                fromJustAction(maybeValue.Value);
+            }
+            else
+            {
+                fromNothingAction?.Invoke();
+            }
+        }
     }
 
     public static Maybe<TResult> Or<TSource, TResult>(this Maybe<TSource> v1, Func<Maybe<TResult>> getV2)
